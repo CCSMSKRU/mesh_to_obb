@@ -1,0 +1,60 @@
+{
+  "name": "mesh_model_to_obbs_model",
+  "version": "1.0.0",
+  "description": "You can load the OBJ model and then create a hierarchical model using the OBB. This can be useful when you have enough rough models in your software and full Mesh models are redundant",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cross-env NODE_ENV=development webpack-dev-server --open",
+    "build": "cross-env NODE_ENV=production webpack --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CCSMSKRU/mesh_to_obb.git"
+  },
+  "keywords": [
+    "js",
+    "jsvascript",
+    "OBB",
+    "threejs",
+    "OBJ",
+    "Mesh",
+    "3D",
+    "convert",
+    "Geometry engine",
+    "Math engine"
+  ],
+  "author": "Ivan Goptarev <ivantgco@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CCSMSKRU/mesh_to_obb/issues"
+  },
+  "homepage": "https://github.com/CCSMSKRU/mesh_to_obb#readme",
+  "private": true,
+  "browserslist": "> 0.25%, not dead",
+  "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/preset-env": "^7.9.6",
+    "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.1.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^5.1.1",
+    "cross-env": "^7.0.2",
+    "css-loader": "^3.5.3",
+    "eslint": "^7.0.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-loader": "^4.0.2",
+    "html-webpack-plugin": "^4.3.0",
+    "mini-css-extract-plugin": "^0.9.0",
+    "sass": "^1.26.5",
+    "sass-loader": "^8.0.2",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.8.7",
+    "normalize.css": "^8.0.1"
+  }
+}

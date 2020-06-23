@@ -1,0 +1,22 @@
+@import "variables";
+@import "mixins";
+
+.app__tree {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 600px;
+  top: $header-height + $toolbar-height;
+  width:$tree-width;
+  //border-top: 1px solid $border-color;
+  border-bottom: 1px solid $border-color;
+  padding: 7px 10px;
+  display: flex;
+  //background-color: #1a73e8;
+
+
+  .button {
+    @include button();
+  }
+
+}
