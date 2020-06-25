@@ -1,5 +1,11 @@
+/*
+ * Complex Cloud Solutions, LLC (ccs.msk.ru)
+ * Ivan Goptarev
+ * Copyright (c) 2020.
+ */
+
 import {Component} from '@core/Component'
-import {TreeNode} from '@/components/tree/TreeNode'
+import {createTree} from '@/components/tree/tree.template'
 
 export class Tree extends Component {
     static className = 'app__tree'
@@ -10,20 +16,22 @@ export class Tree extends Component {
             listeners: [],
             ...options
         })
-        this._nodes = []
+        this.wrapperSelector = '.app__content'
     }
 
     init() {
         // const topNode = new TreeNode(this.$root, {title:'Model'})
         // this._nodes.push(topNode)
+
+        this.$on('project:loadModel', (e)=>{
+            this.render()
+        })
     }
 
     toHTML() {
-        return `
-            <div>
-                <h2>Top</h2>
-<!--                ${this._nodes.map(node=>node.toHTML)}-->
-            </div>
-        `
+        const rootNode = this.project.model || []
+        const selectedId = this.project.selectedModel? this.project.selectedModel.id : null
+        console.log('rootNode', rootNode);
+        return createTree(rootNode, {selectedId})
     }
 }

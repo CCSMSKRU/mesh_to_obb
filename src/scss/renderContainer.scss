@@ -2,14 +2,14 @@
 @import "mixins";
 
 .app__renderContainer {
-  position: absolute;
-  left: $tree-width;
-  right: 0;
-  height: 600px;
-  top: $header-height + $toolbar-height;
+  //position: absolute;
+  //left: $tree-width;
+  //right: 0;
+  //height: 600px;
+  //top: $header-height + $toolbar-height;
   width:$renderContainer-width;
   //border-top: 1px solid $border-color;
-  border-bottom: 1px solid $border-color;
+  //border-bottom: 1px solid $border-color;
   padding: 7px 10px;
   display: flex;
   //background-color: #c7d8e8;

@@ -12,9 +12,19 @@ export class Header extends Component {
 
     }
 
+    // init(){
+    //     super.init()
+    //
+    //     this.$on('toolbar:loadMesh', (e)=>{
+    //         console.log('e.file',e)
+    //     })
+    // }
+
     toHTML() {
+
+
         return `
-            <input type="text" class="input" value="Новый проект">
+            <input type="text" class="input" value="${this.project.name}">
             <div>
 
                 <div class="button"><i class="material-icons">delete</i></div>
