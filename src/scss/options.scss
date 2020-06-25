@@ -1,0 +1,65 @@
+/*!
+ * Complex Cloud Solutions, LLC (ccs.msk.ru)
+ * Ivan Goptarev
+ * Copyright (c) 2020.
+ */
+@import "variables";
+@import "mixins";
+
+.app__options {
+  //position: absolute;
+  //left: $tree-width + $renderContainer-width;
+  //right: 0;
+  //height: 600px;
+  //top: $header-height + $toolbar-height;
+  width: $options-width;
+  //border-top: 1px solid $border-color;
+  //border-bottom: 1px solid $border-color;
+  padding: 7px 10px;
+  display: flex;
+  //background-color: #1a73e8;
+
+  h5 {
+    margin: 10px 0;
+  }
+
+  .button {
+    @include button();
+  }
+
+  .options-container {
+    display: block;
+    padding: 7px 10px;
+    width: 100%;
+    font-size: 0.8rem;
+    overflow-y: auto;
+
+    .options__box {
+      width: 100%;
+      padding: 0 0 10px 0;
+      border-bottom: 1px solid $border-color;
+
+      input {
+        font-size: 0.8rem;
+      }
+
+      .flex {
+        display: flex;
+        //justify-content: space-between;
+        align-items: center;
+
+        &.between {
+          justify-content: space-between;
+        }
+      }
+
+      .label {
+        text-decoration: underline;
+        padding-right: 10px;
+      }
+    }
+
+  }
+
+
+}

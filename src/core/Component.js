@@ -5,6 +5,7 @@ export class Component extends DomListener {
         super($root, options.listeners)
         this.name = options.name || ''
         this.emitter = options.emitter
+        this.project = options.project
         this.unsubscribers = []
 
         this.prepare()
@@ -19,6 +20,10 @@ export class Component extends DomListener {
     // Возвращает шаблон компонента
     toHTML() {
         return ''
+    }
+
+    render(...args) {
+        this.$root.html(this.toHTML(...args))
     }
 
     $emit(event, ...args) {

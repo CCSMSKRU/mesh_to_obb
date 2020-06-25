@@ -1,4 +1,5 @@
 import {Component} from '@core/Component'
+import {init3D} from '@/components/renderContainer/renderContainer.init3D'
 
 export class RenderContainer extends Component {
     static className = 'app__renderContainer'
@@ -9,13 +10,37 @@ export class RenderContainer extends Component {
             listeners: [],
             ...options
         })
+        this.wrapperSelector = '.app__content'
     }
 
+    init() {
+        super.init()
+
+        this.pEngine = init3D({container:this.$root})
+        this.pEngine.init3D()
+        this.project.scene = this.pEngine.createScene()
+
+        this.pEngine.renderScene3D(this.project.scene)
+
+
+        this.$on('project:loadModel', (e)=>{
+            this.project.scene.addModel(this.project.model)
+            this.pEngine.addModelTo3D(this.project.model)
+        })
+
+        this.$on('project:loadMeshModel', (e)=>{
+            this.project.scene.addModel(this.project.meshModel)
+            this.pEngine.addModelTo3D(this.project.meshModel)
+        })
+    }
 
     toHTML() {
+
+
+
         return `
             <div>
-               renderContainer
+               Loading...
             </div>
         `
     }
