@@ -25,22 +25,24 @@
   }
 
   .tree-node {
-    display: flex;
 
     cursor: default;
     padding: 5px 0;
 
+    .label {
+      &.selected {
+        color:$selected-color;
+        text-decoration: underline;
+      }
 
-    &.selected {
-      color:$selected-color;
-      text-decoration: underline;
+      &:hover{
+        color:$hover-color
+      }
     }
 
-    &:hover{
-      color:$hover-color
-    }
 
-    &.tree-childs{
+
+    .tree-childs{
       margin-left: 10px;
     }
   }

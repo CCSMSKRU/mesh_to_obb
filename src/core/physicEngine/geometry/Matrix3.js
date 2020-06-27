@@ -43,6 +43,7 @@ export class Matrix3 extends Matrix{
             return this.rotationZ(roll).multiply(this.rotationX(pitch)).multiply(this.rotationY(yaw));
         };
 
+
     }
 
     get _11(){return this.__11;}
@@ -63,6 +64,22 @@ export class Matrix3 extends Matrix{
     set _32(val){this.__32 = val;}
     get _33(){return this.__33;}
     set _33(val){this.__33 = val;}
+
+    decomposeYawPitchRoll() {
+        // https://coderoad.ru/1996957/%D0%9F%D1%80%D0%B5%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%AD%D0%B9%D0%BB%D0%B5%D1%80%D0%B0-%D0%B2-%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D1%83-%D0%B8-%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D1%8B-%D0%B2-%D0%AD%D0%B9%D0%BB%D0%B5%D1%80%D0%B0
+        const euler = new Vector3()
+        euler.x = Math.asin(-this._32)                  // Pitch
+        if (Math.cos(euler.x) > 0.0001)                 // Not at poles
+        {
+            euler.y = Math.atan2(this._31, this._33)     // Yaw
+            euler.z = Math.atan2(this._12, this._22)     // Roll
+            // euler.z = Math.atan2(this._21, this._22)     // Roll
+        } else {
+            euler.y = 0                         // Yaw
+            euler.z = Math.atan2(-this._21, this._11)    // Roll
+        }
+        return new Vector3(this.radToDeg(euler.x), this.radToDeg(euler.y), this.radToDeg(euler.z))
+    }
 
     axisAngle(axis, angle){
         angle = this.degToRad(angle);
@@ -89,9 +106,9 @@ export class Matrix3 extends Matrix{
     }
 
     multiplyVector(v){
-        let x = this.dot(new Vector3(this._11, this._21, this._31));
-        let y = this.dot(new Vector3(this._12, this._22, this._32));
-        let z = this.dot(new Vector3(this._13, this._23, this._33));
+        let x = v.dot(new Vector3(this._11, this._21, this._31));
+        let y = v.dot(new Vector3(this._12, this._22, this._32));
+        let z = v.dot(new Vector3(this._13, this._23, this._33));
         return new Vector3(x, y, z);
     }
 

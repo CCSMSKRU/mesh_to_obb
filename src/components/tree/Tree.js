@@ -6,6 +6,7 @@
 
 import {Component} from '@core/Component'
 import {createTree} from '@/components/tree/tree.template'
+import {$} from '@core/dom'
 
 export class Tree extends Component {
     static className = 'app__tree'
@@ -20,10 +21,15 @@ export class Tree extends Component {
     }
 
     init() {
+        super.init()
         // const topNode = new TreeNode(this.$root, {title:'Model'})
         // this._nodes.push(topNode)
 
-        this.$on('project:loadModel', (e)=>{
+        // this.$on('project:loadModel', (e)=>{
+        //     this.render()
+        // })
+
+        this.$on('project:selectModel', (e)=>{
             this.render()
         })
     }
@@ -33,5 +39,14 @@ export class Tree extends Component {
         const selectedId = this.project.selectedModel? this.project.selectedModel.id : null
         console.log('rootNode', rootNode);
         return createTree(rootNode, {selectedId})
+    }
+
+    onClick(e) {
+
+        const $target = $(e.target)
+        if ($target.data.type !== 'tree-node') return
+        this.$emit('tree:selectModel', {value:$target.data.id})
+
+
     }
 }

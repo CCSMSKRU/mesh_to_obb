@@ -6,6 +6,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 import {Scene} from '@core/physicEngine/Scene/Scene'
 import {Matrix4} from '@core/physicEngine/geometry/Matrix4'
 import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader'
+import {Matrix3} from '@core/physicEngine/geometry/Matrix3'
 
 export class GraphicEngine {
     constructor(obj = {}) {
@@ -806,7 +807,8 @@ export class GraphicEngine {
         const graphicOptions = {...topModel.graphicOptions, ...model.graphicOptions}
         if (graphicOptions.needUpdate){
             if (graphicOptions.materialColor) cube.material.color = new THREE.Color(graphicOptions.materialColor)
-            if (graphicOptions.transparent) cube.material.transparent = graphicOptions.transparent
+            // if (graphicOptions.transparent) cube.material.transparent = graphicOptions.transparent
+            if (typeof graphicOptions.opacity !== 'undefined') cube.material.transparent = !(graphicOptions.opacity === 1)
             if (graphicOptions.opacity) cube.material.opacity = graphicOptions.opacity
             model.graphicOptions.updated = true
         }
@@ -817,34 +819,66 @@ export class GraphicEngine {
         // cube.material.opacity = graphicOptions.transparent
         // cube.material.opacity = graphicOptions.opacity
 
+        const box1 = model.getOBB()
+        const oma = box1.orientation.inverse()
 
-        let box = model.getOBB()
-
-        const oma = box.orientation
-        let self_rotation = new Matrix4(
+        const m4t = new Matrix4(
             oma._11, oma._12, oma._13, 0,
             oma._21, oma._22, oma._23, 0,
             oma._31, oma._32, oma._33, 0,
-            0, 0, 0, 1
-        ).inverse()
-
-
-        const m = new THREE.Matrix4()
-        m.set(...self_rotation.asArray)
-        cube.setRotationFromMatrix(m)
+            ...box1.position.asArray, 1
+        )
+        const m1 = new THREE.Matrix4()
+        m1.set(...m4t.asArray)
+        cube.setRotationFromMatrix(m1)
 
         cube.updateMatrix();
-        cube.position.set(box.position.x, box.position.y, box.position.z)
+        let boxPos = m4t.getTranslation()
+
+
+        // let box = model.getOBB()
+        //
+        // const oma = box.orientation
+        // // const oma = box.orientation.multiplyVector(new Vector3(1, -1, -1))
+        //
+        // // const inverseZMatrix = new Matrix4(
+        // //     -1, 0, 0, 0,
+        // //     0, -1, 0, 0,
+        // //     0, 0, 1, 0,
+        // //     0, 0, 0, 1)
+        //
+        // let self_rotation = new Matrix4(
+        //     oma._11, oma._12, oma._13, 0,
+        //     oma._21, oma._22, oma._23, 0,
+        //     oma._31, oma._32, oma._33, 0,
+        //     0, 0, 0, 1
+        // ).inverse()
+        // // ).inverse().multiply(inverseZMatrix)
+        // // )
+        //
+        //
+        // const m = new THREE.Matrix4()
+        // m.set(...self_rotation.asArray)
+        // cube.setRotationFromMatrix(m)
+        //
+        // cube.updateMatrix();
+        //
+        // let boxPos = box.position.multiply(this.inverseMultiplyVec3D)
+        // // let boxPos = box.position
+        cube.position.set(boxPos.x, boxPos.y, boxPos.z)
 
         if (this.options3D.drawBounds){
             const cubeBoundsFull = this.scene3D.getObjectByName(model.id + '_boundsFull')
             if (cubeBoundsFull){
-
+                // const boundsFullPos = box.position.multiply(this.inverseMultiplyVec3D)
+                // const boundsFullPos = model.boundsFull.position.multiply(this.inverseMultiplyVec3D)
+                const boundsFullPos = model.boundsFull.position
                 const scaleX = (model.boundsFull.size.x * 2) / cubeBoundsFull.geometry.parameters.width
                 const scaleY = (model.boundsFull.size.y * 2) / cubeBoundsFull.geometry.parameters.height
                 const scaleZ = (model.boundsFull.size.z * 2) / cubeBoundsFull.geometry.parameters.depth
                 cubeBoundsFull.scale.set(scaleX,scaleY,scaleZ)
-                cubeBoundsFull.position.set(model.boundsFull.position.x, model.boundsFull.position.y, model.boundsFull.position.z)
+                // cubeBoundsFull.position.set(model.boundsFull.position.x, model.boundsFull.position.y, model.boundsFull.position.z)
+                cubeBoundsFull.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
             }
         }
 
