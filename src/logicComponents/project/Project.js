@@ -20,6 +20,8 @@ export class Project {
         this.options = {
             model: {
                 opacity: 0.8,
+                drawCenters:true,
+                selectedColor:'#ff0000',
                 defaultSteps: {
                     size: 100,
                     position: 100,
@@ -74,15 +76,16 @@ export class Project {
         return new Promise((res, rej) => {
             this.model = new Model({
                 name: 'Model1',
-                rotation: new Vector3(0, 0, 0),
-                content: new OBB(new Vector3(1000, 1000, 1000), new Vector3(1000, 1000, 1000))
-                // content: new OBB(null, new Vector3(1000, 1000, 1000))
+                // rotation: new Vector3(0, 0, 0),
+                // content: new OBB(new Vector3(1000, 1000, 1000), new Vector3(1000, 1000, 1000))
+                content: new OBB(null, new Vector3(1000, 1000, 1000))
             })
 
             this.model.graphicOptions.opacity = this.options.model.opacity
+            this.model.graphicOptions.drawCenters = this.options.model.drawCenters
             this.model.graphicOptions.needUpdate = true
 
-            this.selectedModel = this.model
+            this.selectModel(this.model.id)
             res(null)
         })
 
@@ -96,24 +99,32 @@ export class Project {
             name: `${this.selectedModel.name}_${this.selectedModel.childs.length + 1}`,
             content: new OBB(new Vector3(), new Vector3(500, 500, 500))
         })
+
+        // model.graphicOptions.opacity = this.options.model.opacity
+        // model.graphicOptions.drawCenters = this.options.model.drawCenters
+        model.graphicOptions.needUpdate = true
+
         this.selectedModel.addChild(model)
-        this.selectedModel = model
+        this.selectModel(model.id)
+        // this.selectedModel.setGraphicOption('opacity', this.options.model.opacity)
+
     }
 
     removeModel(){
         console.log('Not implemented now');
     }
 
-    getModelById(id, model) {
-        if (!model) return false
-        if (model.id === id) return model
-        // itar
-    }
-
     selectModel(id) {
         if (!this.model) return
-        let model
-        if (this.model.id === id) model = this.model
+        this.model.setGraphicOption('materialColor', '#00FF00', true)
+        this.selectedModel = this.model.getById(id)
+        this.selectedModel.setGraphicOption('materialColor', '#ff8100', true)
+        this.selectedModel.setGraphicOption('materialColor', '#ff2000')
+    }
+
+    renameSelected(val) {
+        if (!this.selectedModel) return
+        this.selectedModel.name = val
     }
 
     // Container

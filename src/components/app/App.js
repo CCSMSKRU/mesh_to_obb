@@ -50,12 +50,18 @@ export class App {
             this.$emit('project:selectModel')
         })
 
+        this.$on('options:changeName', (e)=>{
+            this.project.renameSelected(e.value)
+            this.$emit('project:changeName')
+        })
+
         this.$on('options:opacity', (e)=>{
             if (this.project.model) {
                 this.project.model.graphicOptions.opacity = e.value
                 this.project.model.graphicOptions.needUpdate = true
             }
         })
+
         this.$on('options:applyDefaultSteps', (e)=>{
             this.project.options.model.defaultSteps = e.value
             if (this.project.model) {

@@ -14,7 +14,7 @@ export class Tree extends Component {
     constructor($root, options) {
         super($root, {
             name: 'Tree',
-            listeners: [],
+            listeners: ['click'],
             ...options
         })
         this.wrapperSelector = '.app__content'
@@ -30,6 +30,10 @@ export class Tree extends Component {
         // })
 
         this.$on('project:selectModel', (e)=>{
+            this.render()
+        })
+
+        this.$on('project:changeName', (e)=>{
             this.render()
         })
     }

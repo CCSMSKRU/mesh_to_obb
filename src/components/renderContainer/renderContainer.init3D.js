@@ -28,7 +28,7 @@ export const init3D = (options = {}) => {
                         // border: '1px solid'
                     },
                     axesHelper: true,
-                    drawBounds: true
+                    // drawBounds: true,
                 }
             },
             ...options

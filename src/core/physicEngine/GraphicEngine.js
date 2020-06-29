@@ -718,7 +718,7 @@ export class GraphicEngine {
         if (model.content.bounds) box = model.content.bounds
 
         const boxSize = box.size //.multiply(this.scale)
-        const boxPos = box.position.multiply(this.inverseMultiplyVec3D)
+        const boxPos = box.position //.multiply(this.inverseMultiplyVec3D)
         const geometry = new THREE.BoxGeometry(boxSize.x * 2, boxSize.y * 2, boxSize.z * 2)
         const material = new THREE.MeshPhongMaterial({
             color: graphicOptions.materialColor || '#0F0',
@@ -733,7 +733,7 @@ export class GraphicEngine {
 
         if (this.options3D.drawBounds){
             const boundsFullSize = model.boundsFull.size //.multiply(this.scale)
-            const boundsFullPos = box.position.multiply(this.inverseMultiplyVec3D)
+            const boundsFullPos = box.position //.multiply(this.inverseMultiplyVec3D)
             const boundsFullGeometry = new THREE.BoxGeometry(boundsFullSize.x * 2, boundsFullSize.y * 2, boundsFullSize.z * 2)
 
             const boundsFullMaterial = new THREE.MeshPhongMaterial({color: model.childs.length? '#cdffcb' : '#ffa2a5', opacity:model.childs.length? 0.2 : 0.5, transparent: true,})
@@ -742,6 +742,7 @@ export class GraphicEngine {
             boundsFullBox.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
             this.scene3D.add(boundsFullBox)
         }
+
     }
     renderScene3D(scene) {
 
@@ -808,8 +809,11 @@ export class GraphicEngine {
         if (graphicOptions.needUpdate){
             if (graphicOptions.materialColor) cube.material.color = new THREE.Color(graphicOptions.materialColor)
             // if (graphicOptions.transparent) cube.material.transparent = graphicOptions.transparent
-            if (typeof graphicOptions.opacity !== 'undefined') cube.material.transparent = !(graphicOptions.opacity === 1)
-            if (graphicOptions.opacity) cube.material.opacity = graphicOptions.opacity
+            const opacity = typeof graphicOptions.opacity !== 'undefined'? graphicOptions.opacity : null
+            if (opacity) {
+                cube.material.transparent = !(opacity === 1)
+                cube.material.opacity = opacity
+            }
             model.graphicOptions.updated = true
         }
         // opacity:typeof graphicOptions.opacity !== 'undefined'? graphicOptions.opacity : 1,
@@ -880,6 +884,51 @@ export class GraphicEngine {
                 // cubeBoundsFull.position.set(model.boundsFull.position.x, model.boundsFull.position.y, model.boundsFull.position.z)
                 cubeBoundsFull.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
             }
+        }
+
+        if (graphicOptions.drawCenters){
+            const centersLine = this.scene3D.getObjectByName(model.id + '_centersLine')
+            if (centersLine) {
+                // console.log([...model.position.asArray, ...boxPos.asArray]);
+                // centersLine.geometry.attributes.position.array = [...model.position.asArray, ...boxPos.asArray]
+                const positions = centersLine.geometry.attributes.position.array
+                // const newPositions = [...model.position.asArray, ...boxPos.asArray]
+                const newPositions = [...model.absolutePosition.asArray, ...boxPos.asArray]
+                // const newPositions = [...model.position.asArray, ...model.content.position.asArray]
+                let needUpdate
+                for (const i in newPositions) {
+                    if (positions[i] !== newPositions[i]) {
+                        needUpdate = true
+                        positions[i] = newPositions[i]
+                    }
+
+                }
+                centersLine.geometry.attributes.position.needsUpdate = needUpdate;
+            } else {
+                const centersLineMaterial = new THREE.LineBasicMaterial({
+                    color: 0xffff00
+                });
+
+                const points = [];
+                points.push( new THREE.Vector3( model.position.x, model.position.y, model.position.z) );
+                // points.push( new THREE.Vector3( boxPos.x, boxPos.y, boxPos.z ) )
+                points.push( new THREE.Vector3( model.content.position.x, model.content.position.y, model.content.position.z ) )
+
+                const centersLineGeometry = new THREE.BufferGeometry().setFromPoints( points );
+
+                const centersLine = new THREE.Line( centersLineGeometry, centersLineMaterial );
+
+                centersLine.name = model.id + '_centersLine'
+                this.scene3D.add(centersLine)
+            }
+            // const points = [];
+            // points.push( new THREE.Vector3( model.position.x, model.position.y, model.position.z) );
+            // points.push( new THREE.Vector3( boxPos.x, boxPos.y, boxPos.z ) )
+
+            // const centersLineGeometry = new THREE.BufferGeometry().setFromPoints( points );
+
+            // var centersLine = new THREE.Line( centersLineGeometry, centersLineMaterial );
+            // this.scene3D.add(centersLine)
         }
 
         model.childs.forEach(one=>this.renderModel3D(one, topModel))

@@ -1533,7 +1533,15 @@ export class Model {
         return this._verticesAll
     }
 
+    getById(id) {
+        if (this.id === id) return this
 
+        for (let i = 0; i < this.childs.length; i++) {
+            const model = this.childs[i].getById(id)
+            if (model) return model
+        }
+        return false
+    }
 
     addChild(child){
         if (!(child instanceof Model)) throw new Error('child must be a Model instance')
@@ -1570,6 +1578,15 @@ export class Model {
         if (this._content && this._content.orientation) orientation = this._content.orientation.multiply(orientation)
 
         return new OBB(position, size, orientation)
+    };
+
+    get absolutePosition() {
+        let world = this.getWorldMatrix()
+        // const inv = world.inverse()
+        // const position = world.multiplyPoint(new Vector3(...this.position.asArray))
+        const position = world.getTranslation()
+        // if (this.parent) return position.add(this.parent.absolutePosition)
+        return position
     };
 
     raycast(ray) {
@@ -1759,6 +1776,12 @@ export class Model {
     rotateZ(val) {
         const diff = val - this._rotation.z
         this.rotate(new Vector3(0, 0, diff))
+    }
+
+    setGraphicOption(key, val, childs) {
+        this.graphicOptions[key] = val
+        this.graphicOptions.needUpdate = true
+        if (childs) this.childs.forEach(one => one.setGraphicOption(key, val, childs))
     }
 
 }

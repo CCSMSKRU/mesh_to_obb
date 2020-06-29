@@ -15,7 +15,7 @@ function createNode(node = {}, options = {}){
     console.log(options, selected);
 
     return `<div class="tree-node${selected? ' selected' : ''}" data-type="tree-node" data-id="${nodeId}">
-                <div class="label" data-type="tree-node">${text}</div>
+                <div class="label${selected? ' selected' : ''}" data-type="tree-node" data-id="${nodeId}">${text}</div>
                 ${node[childs] && node[childs].length
                     ? `<div class="tree-childs" data-type="tree-childs">
                             ${node[childs].map(one=>createNode(one, options)).join('')}
