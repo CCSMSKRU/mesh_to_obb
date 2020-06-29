@@ -45,6 +45,86 @@ export class App {
 
         })
 
+        this.$on('tree:selectModel', (e)=>{
+            this.project.selectModel(e.value)
+            this.$emit('project:selectModel')
+        })
+
+        this.$on('options:changeName', (e)=>{
+            this.project.renameSelected(e.value)
+            this.$emit('project:changeName')
+        })
+
+        this.$on('options:opacity', (e)=>{
+            if (this.project.model) {
+                this.project.model.graphicOptions.opacity = e.value
+                this.project.model.graphicOptions.needUpdate = true
+            }
+        })
+
+        this.$on('options:applyDefaultSteps', (e)=>{
+            this.project.options.model.defaultSteps = e.value
+            if (this.project.model) {
+                this.$emit('project:selectModel')
+            }
+        })
+
+        this.$on('options:addChild', (e)=>{
+            this.project.addChild()
+            this.$emit('project:selectModel')
+        })
+
+        this.$on('options:removeModel', (e)=>{
+            this.project.removeModel()
+        })
+
+
+        // boxContainerPosition
+        this.$on('options:boxContainerPosition_x', (e)=>{
+            this.project.moveXSelected(e.value)
+        })
+        this.$on('options:boxContainerPosition_y', (e)=>{
+            this.project.moveYSelected(e.value)
+        })
+        this.$on('options:boxContainerPosition_z', (e)=>{
+            this.project.moveZSelected(e.value)
+        })
+
+        // boxContainerRotation
+        this.$on('options:boxContainerRotation_x', (e)=>{
+            this.project.rotateXSelected(e.value)
+        })
+        this.$on('options:boxContainerRotation_y', (e)=>{
+            this.project.rotateYSelected(e.value)
+        })
+        this.$on('options:boxContainerRotation_z', (e)=>{
+            this.project.rotateZSelected(e.value)
+        })
+
+        // boxPosition
+        this.$on('options:boxPosition_x', (e)=>{
+            this.project.moveContentXSelected(e.value)
+        })
+        this.$on('options:boxPosition_y', (e)=>{
+            this.project.moveContentYSelected(e.value)
+        })
+        this.$on('options:boxPosition_z', (e)=>{
+            this.project.moveContentZSelected(e.value)
+        })
+
+        // boxSize
+        this.$on('options:boxSize_x', (e)=>{
+            this.project.sizeContentXSelected(e.value)
+        })
+        this.$on('options:boxSize_y', (e)=>{
+            this.project.sizeContentYSelected(e.value)
+        })
+        this.$on('options:boxSize_z', (e)=>{
+            this.project.sizeContentZSelected(e.value)
+        })
+
+
+
     }
 
     $on(event, fn) {

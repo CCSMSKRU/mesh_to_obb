@@ -344,6 +344,12 @@ export class OBB extends AABB {
         this.orientation = orientation || new Matrix3()
     }
 
+    get rotation() {
+        // return new Vector3(this.orientation.)
+        console.warn('OBB get rotation gives a correct result only at angles around the X axis from 0 to 90 degrees (excluding 0 and 90)');
+        return this.orientation.decomposeYawPitchRoll()
+    }
+
     getBounds(){
         const intervalInstance = new Interval()
         const xI = intervalInstance.getIntervalOBB(this, new Vector3(1, 0, 0))
@@ -1368,52 +1374,65 @@ export class Model {
         this._childs.forEach(one=> one.clearBoundsFull())
     }
 
+    calcBounds(){
+        if (!this._content) return new AABB()
+        if (this.type === 'THREEJS_OBJ') return new AABB()
+
+        const min = this._content.getMin()
+        const max = this._content.getMax()
+        return AABB.fromMinMax(min, max)
+    }
+
     get content() {
         return this._content
     }
 
     set content(val) {
         this._content = val
-        if (!this._content) return
+        // if (!this._content) return
 
-        let min = new Vector3()
-        let max = new Vector3()
-
-        if (this.type === 'THREEJS_OBJ'){
-            // this._content.children.forEach(child=>{
-            //
-            // })
-            // if (!this._content.geometry.boundingBox) this._content.geometry.computeBoundingBox()
-            // const boundingBox = this._content.geometry.boundingBox
-            // min = new Vector3(boundingBox.min.x, boundingBox.min.y, boundingBox.min.z)
-            // max = new Vector3(boundingBox.max.x, boundingBox.max.y, boundingBox.max.z)
-        }else {
-            min = this._content.getMin()
-            max = this._content.getMax()
-        }
+        this.bounds = this.calcBounds()
+        // return
 
 
-        // if (this._boundsFull) this._boundsFull = null
-
-        // if (this._content instanceof OBB) {
-        //     // this.bounds = this._content.getBounds()
-        //     // return
-        // } else if (this._content instanceof Mesh) {
-        //     min = this._content.vertices[0]
-        //     max = this._content.vertices[0]
+        // let min = new Vector3()
+        // let max = new Vector3()
         //
-        //     for (let i in this._content.vertices) {
-        //         min.x = Math.min(this._content.vertices[i].x, min.x)
-        //         min.y = Math.min(this._content.vertices[i].y, min.y)
-        //         min.z = Math.min(this._content.vertices[i].z, min.z)
-        //         max.x = Math.max(this._content.vertices[i].x, max.x)
-        //         max.y = Math.max(this._content.vertices[i].y, max.y)
-        //         max.z = Math.max(this._content.vertices[i].z, max.z)
-        //     }
+        // if (this.type === 'THREEJS_OBJ'){
+        //     // this._content.children.forEach(child=>{
+        //     //
+        //     // })
+        //     // if (!this._content.geometry.boundingBox) this._content.geometry.computeBoundingBox()
+        //     // const boundingBox = this._content.geometry.boundingBox
+        //     // min = new Vector3(boundingBox.min.x, boundingBox.min.y, boundingBox.min.z)
+        //     // max = new Vector3(boundingBox.max.x, boundingBox.max.y, boundingBox.max.z)
+        // }else {
+        //     min = this._content.getMin()
+        //     max = this._content.getMax()
         // }
-
-        this.bounds = AABB.fromMinMax(min, max)
-        // console.log(min, max, this.bounds);
+        //
+        //
+        // // if (this._boundsFull) this._boundsFull = null
+        //
+        // // if (this._content instanceof OBB) {
+        // //     // this.bounds = this._content.getBounds()
+        // //     // return
+        // // } else if (this._content instanceof Mesh) {
+        // //     min = this._content.vertices[0]
+        // //     max = this._content.vertices[0]
+        // //
+        // //     for (let i in this._content.vertices) {
+        // //         min.x = Math.min(this._content.vertices[i].x, min.x)
+        // //         min.y = Math.min(this._content.vertices[i].y, min.y)
+        // //         min.z = Math.min(this._content.vertices[i].z, min.z)
+        // //         max.x = Math.max(this._content.vertices[i].x, max.x)
+        // //         max.y = Math.max(this._content.vertices[i].y, max.y)
+        // //         max.z = Math.max(this._content.vertices[i].z, max.z)
+        // //     }
+        // // }
+        //
+        // this.bounds = AABB.fromMinMax(min, max)
+        // // console.log(min, max, this.bounds);
     }
 
     get rotation(){
@@ -1514,7 +1533,15 @@ export class Model {
         return this._verticesAll
     }
 
+    getById(id) {
+        if (this.id === id) return this
 
+        for (let i = 0; i < this.childs.length; i++) {
+            const model = this.childs[i].getById(id)
+            if (model) return model
+        }
+        return false
+    }
 
     addChild(child){
         if (!(child instanceof Model)) throw new Error('child must be a Model instance')
@@ -1551,6 +1578,15 @@ export class Model {
         if (this._content && this._content.orientation) orientation = this._content.orientation.multiply(orientation)
 
         return new OBB(position, size, orientation)
+    };
+
+    get absolutePosition() {
+        let world = this.getWorldMatrix()
+        // const inv = world.inverse()
+        // const position = world.multiplyPoint(new Vector3(...this.position.asArray))
+        const position = world.getTranslation()
+        // if (this.parent) return position.add(this.parent.absolutePosition)
+        return position
     };
 
     raycast(ray) {
@@ -1653,6 +1689,43 @@ export class Model {
         }
     }
 
+    moveContent(vDirection) {
+        if (!vDirection) return
+        if (!this.content || !this.content.position) return
+        this.content.position = this.content.position.add(vDirection)
+        this.bounds = this.calcBounds()
+        this.clearBoundsFull()
+    }
+
+    setPositionX(val) {
+        const diff = val - this.position.x
+        this.move(new Vector3(diff, 0, 0))
+    }
+    setPositionY(val) {
+        const diff = val - this.position.y
+        this.move(new Vector3(0, diff, 0))
+    }
+    setPositionZ(val) {
+        const diff = val - this.position.z
+        this.move(new Vector3(0, 0, diff))
+    }
+
+    setContentPositionX(val) {
+        if (!this.content || !this.content.position) return
+        const diff = val - this.content.position.x
+        this.moveContent(new Vector3(diff, 0, 0))
+    }
+    setContentPositionY(val) {
+        if (!this.content || !this.content.position) return
+        const diff = val - this.content.position.y
+        this.moveContent(new Vector3(0, diff, 0))
+    }
+    setContentPositionZ(val) {
+        if (!this.content || !this.content.position) return
+        const diff = val - this.content.position.z
+        this.moveContent(new Vector3(0, 0, diff))
+    }
+
     sizeX(x){
         if (isNaN(+x)) return
         if (!(this._content instanceof OBB || this._content instanceof AABB)) return
@@ -1685,8 +1758,30 @@ export class Model {
     rotate(vRotate) {
         if (!vRotate) return
         this._rotation = this._rotation.add(vRotate)
+        console.log('this._rotation', this._rotation);
         // Обнулим _boundsFull чтобы они посчитались при следующей необходимости заново
         this.clearBoundsFull()
+    }
+
+    rotateX(val) {
+        const diff = val - this._rotation.x
+        this.rotate(new Vector3(diff, 0, 0))
+    }
+
+    rotateY(val) {
+        const diff = val - this._rotation.y
+        this.rotate(new Vector3(0, diff, 0))
+    }
+
+    rotateZ(val) {
+        const diff = val - this._rotation.z
+        this.rotate(new Vector3(0, 0, diff))
+    }
+
+    setGraphicOption(key, val, childs) {
+        this.graphicOptions[key] = val
+        this.graphicOptions.needUpdate = true
+        if (childs) this.childs.forEach(one => one.setGraphicOption(key, val, childs))
     }
 
 }

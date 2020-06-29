@@ -6,6 +6,7 @@ import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 import {Scene} from '@core/physicEngine/Scene/Scene'
 import {Matrix4} from '@core/physicEngine/geometry/Matrix4'
 import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader'
+import {Matrix3} from '@core/physicEngine/geometry/Matrix3'
 
 export class GraphicEngine {
     constructor(obj = {}) {
@@ -717,7 +718,7 @@ export class GraphicEngine {
         if (model.content.bounds) box = model.content.bounds
 
         const boxSize = box.size //.multiply(this.scale)
-        const boxPos = box.position.multiply(this.inverseMultiplyVec3D)
+        const boxPos = box.position //.multiply(this.inverseMultiplyVec3D)
         const geometry = new THREE.BoxGeometry(boxSize.x * 2, boxSize.y * 2, boxSize.z * 2)
         const material = new THREE.MeshPhongMaterial({
             color: graphicOptions.materialColor || '#0F0',
@@ -732,7 +733,7 @@ export class GraphicEngine {
 
         if (this.options3D.drawBounds){
             const boundsFullSize = model.boundsFull.size //.multiply(this.scale)
-            const boundsFullPos = box.position.multiply(this.inverseMultiplyVec3D)
+            const boundsFullPos = box.position //.multiply(this.inverseMultiplyVec3D)
             const boundsFullGeometry = new THREE.BoxGeometry(boundsFullSize.x * 2, boundsFullSize.y * 2, boundsFullSize.z * 2)
 
             const boundsFullMaterial = new THREE.MeshPhongMaterial({color: model.childs.length? '#cdffcb' : '#ffa2a5', opacity:model.childs.length? 0.2 : 0.5, transparent: true,})
@@ -741,6 +742,7 @@ export class GraphicEngine {
             boundsFullBox.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
             this.scene3D.add(boundsFullBox)
         }
+
     }
     renderScene3D(scene) {
 
@@ -806,8 +808,12 @@ export class GraphicEngine {
         const graphicOptions = {...topModel.graphicOptions, ...model.graphicOptions}
         if (graphicOptions.needUpdate){
             if (graphicOptions.materialColor) cube.material.color = new THREE.Color(graphicOptions.materialColor)
-            if (graphicOptions.transparent) cube.material.transparent = graphicOptions.transparent
-            if (graphicOptions.opacity) cube.material.opacity = graphicOptions.opacity
+            // if (graphicOptions.transparent) cube.material.transparent = graphicOptions.transparent
+            const opacity = typeof graphicOptions.opacity !== 'undefined'? graphicOptions.opacity : null
+            if (opacity) {
+                cube.material.transparent = !(opacity === 1)
+                cube.material.opacity = opacity
+            }
             model.graphicOptions.updated = true
         }
         // opacity:typeof graphicOptions.opacity !== 'undefined'? graphicOptions.opacity : 1,
@@ -817,35 +823,112 @@ export class GraphicEngine {
         // cube.material.opacity = graphicOptions.transparent
         // cube.material.opacity = graphicOptions.opacity
 
+        const box1 = model.getOBB()
+        const oma = box1.orientation.inverse()
 
-        let box = model.getOBB()
-
-        const oma = box.orientation
-        let self_rotation = new Matrix4(
+        const m4t = new Matrix4(
             oma._11, oma._12, oma._13, 0,
             oma._21, oma._22, oma._23, 0,
             oma._31, oma._32, oma._33, 0,
-            0, 0, 0, 1
-        ).inverse()
-
-
-        const m = new THREE.Matrix4()
-        m.set(...self_rotation.asArray)
-        cube.setRotationFromMatrix(m)
+            ...box1.position.asArray, 1
+        )
+        const m1 = new THREE.Matrix4()
+        m1.set(...m4t.asArray)
+        cube.setRotationFromMatrix(m1)
 
         cube.updateMatrix();
-        cube.position.set(box.position.x, box.position.y, box.position.z)
+        let boxPos = m4t.getTranslation()
+
+
+        // let box = model.getOBB()
+        //
+        // const oma = box.orientation
+        // // const oma = box.orientation.multiplyVector(new Vector3(1, -1, -1))
+        //
+        // // const inverseZMatrix = new Matrix4(
+        // //     -1, 0, 0, 0,
+        // //     0, -1, 0, 0,
+        // //     0, 0, 1, 0,
+        // //     0, 0, 0, 1)
+        //
+        // let self_rotation = new Matrix4(
+        //     oma._11, oma._12, oma._13, 0,
+        //     oma._21, oma._22, oma._23, 0,
+        //     oma._31, oma._32, oma._33, 0,
+        //     0, 0, 0, 1
+        // ).inverse()
+        // // ).inverse().multiply(inverseZMatrix)
+        // // )
+        //
+        //
+        // const m = new THREE.Matrix4()
+        // m.set(...self_rotation.asArray)
+        // cube.setRotationFromMatrix(m)
+        //
+        // cube.updateMatrix();
+        //
+        // let boxPos = box.position.multiply(this.inverseMultiplyVec3D)
+        // // let boxPos = box.position
+        cube.position.set(boxPos.x, boxPos.y, boxPos.z)
 
         if (this.options3D.drawBounds){
             const cubeBoundsFull = this.scene3D.getObjectByName(model.id + '_boundsFull')
             if (cubeBoundsFull){
-
+                // const boundsFullPos = box.position.multiply(this.inverseMultiplyVec3D)
+                // const boundsFullPos = model.boundsFull.position.multiply(this.inverseMultiplyVec3D)
+                const boundsFullPos = model.boundsFull.position
                 const scaleX = (model.boundsFull.size.x * 2) / cubeBoundsFull.geometry.parameters.width
                 const scaleY = (model.boundsFull.size.y * 2) / cubeBoundsFull.geometry.parameters.height
                 const scaleZ = (model.boundsFull.size.z * 2) / cubeBoundsFull.geometry.parameters.depth
                 cubeBoundsFull.scale.set(scaleX,scaleY,scaleZ)
-                cubeBoundsFull.position.set(model.boundsFull.position.x, model.boundsFull.position.y, model.boundsFull.position.z)
+                // cubeBoundsFull.position.set(model.boundsFull.position.x, model.boundsFull.position.y, model.boundsFull.position.z)
+                cubeBoundsFull.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
             }
+        }
+
+        if (graphicOptions.drawCenters){
+            const centersLine = this.scene3D.getObjectByName(model.id + '_centersLine')
+            if (centersLine) {
+                // console.log([...model.position.asArray, ...boxPos.asArray]);
+                // centersLine.geometry.attributes.position.array = [...model.position.asArray, ...boxPos.asArray]
+                const positions = centersLine.geometry.attributes.position.array
+                // const newPositions = [...model.position.asArray, ...boxPos.asArray]
+                const newPositions = [...model.absolutePosition.asArray, ...boxPos.asArray]
+                // const newPositions = [...model.position.asArray, ...model.content.position.asArray]
+                let needUpdate
+                for (const i in newPositions) {
+                    if (positions[i] !== newPositions[i]) {
+                        needUpdate = true
+                        positions[i] = newPositions[i]
+                    }
+
+                }
+                centersLine.geometry.attributes.position.needsUpdate = needUpdate;
+            } else {
+                const centersLineMaterial = new THREE.LineBasicMaterial({
+                    color: 0xffff00
+                });
+
+                const points = [];
+                points.push( new THREE.Vector3( model.position.x, model.position.y, model.position.z) );
+                // points.push( new THREE.Vector3( boxPos.x, boxPos.y, boxPos.z ) )
+                points.push( new THREE.Vector3( model.content.position.x, model.content.position.y, model.content.position.z ) )
+
+                const centersLineGeometry = new THREE.BufferGeometry().setFromPoints( points );
+
+                const centersLine = new THREE.Line( centersLineGeometry, centersLineMaterial );
+
+                centersLine.name = model.id + '_centersLine'
+                this.scene3D.add(centersLine)
+            }
+            // const points = [];
+            // points.push( new THREE.Vector3( model.position.x, model.position.y, model.position.z) );
+            // points.push( new THREE.Vector3( boxPos.x, boxPos.y, boxPos.z ) )
+
+            // const centersLineGeometry = new THREE.BufferGeometry().setFromPoints( points );
+
+            // var centersLine = new THREE.Line( centersLineGeometry, centersLineMaterial );
+            // this.scene3D.add(centersLine)
         }
 
         model.childs.forEach(one=>this.renderModel3D(one, topModel))

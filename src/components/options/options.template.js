@@ -25,7 +25,7 @@ function createInput(item = {}, options = {}) {
     const title = item.title || ''
     const width = item.width || options.width
     const type = item.type || 'text'
-    const datas = options.datas || []
+    const datas = item.datas || options.datas || []
     const value = typeof item.value !== 'undefined'
         ? item.value
         : (typeof options.defaultValue? options.defaultValue : null)
@@ -35,17 +35,20 @@ function createInput(item = {}, options = {}) {
 
     const min = item.min
     const max = item.max
+    const step = item.step
 
 
-    return `<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="${width ? 'width:' + width + 'px' : ''}">
+    return `<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" data-needUpgrade="1" style="${width ? 'width:' + width + 'px; min-width: initial;' : ''}">
                 <input class="mdl-textfield__input" 
                     type="${type}" 
                     pattern="${pattern}" 
                     id="${id}"
+                    data-name="${name}"
                     ${datas.join(' ')}
                     ${value !== null ? 'value="' + value + '"' : ''}
                     ${typeof min !== 'undefined' ? 'min="' + min + '"' : ''}
                     ${typeof max !== 'undefined' ? 'max="' + max + '"' : ''}
+                    ${typeof step !== 'undefined' ? 'step="' + step + '"' : ''}
                 >
                 <label class="mdl-textfield__label" for="${id}">${title}</label>
                 <span class="mdl-textfield__error">${errorText}</span>
@@ -57,18 +60,35 @@ function createButton(item = {}, options = {}) {
     const icon = item.icon || ''
     const title = item.title || ''
     const width = item.width || options.width
-    const datas = options.datas || []
+    const datas = item.datas || options.datas || []
 
-    return `<div class="button" 
+    const icon_html = icon
+        ? `<i class="material-icons" ${datas.join(' ')} data-name="${name}">${icon}</i>` : ``
+    const btn_type = options.designType || icon? ' mdl-button--icon' : ' mdl-button--raised'
+    const btn_colored = options.btnColored? ' mdl-button--colored' : ''
+                     // mdl-button mdl-js-button mdl-button--raised mdl-button--colored
+    return `<div class="mdl-button mdl-js-button${btn_type}${btn_colored}" 
                 ${datas.join(' ')}
                 data-name="${name}"
-                style="${width ? 'width:' + width + 'px' : ''}"
-                    >${title}
-                        <i class="material-icons" 
-                            ${datas.join(' ')}
-                            data-name="${name}"
-                        >${icon}</i>
-                    </div>`
+                style="${width ? 'width:' + width + 'px; min-width: initial;' : ''}"
+                    >${title}${icon_html}</div>`
+}
+
+function createSwitch(item = {}, options = {}) {
+
+    const prefix = options.prefix || v4()
+    const name = item.name || ''
+    const id = item.id ? prefix + item.id : prefix + name
+    const title = item.title || ''
+    const width = item.width || options.width
+    const datas = item.datas || options.datas || []
+    const checked = item.checked ? 'checked' : ''
+
+
+    return `<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="${id}" ${datas.join(' ')} data-name="${name}">
+              <input type="checkbox" id="${id}" class="mdl-switch__input" ${checked} ${datas.join(' ')} data-name="${name}">
+              <span class="mdl-switch__label">${title}</span>
+            </label>`
 }
 
 function createItems(block){
@@ -116,7 +136,8 @@ export function createOptions(data = {}, options = {}) {
                     {
                         name: 'addChild',
                         // icon:'add',
-                        title:'Add child'
+                        title:'Add child',
+                        // width:40
                     },
                     {
                         name: 'remove',
@@ -140,7 +161,7 @@ export function createOptions(data = {}, options = {}) {
                     name: 'size',
                     title: 'Size',
                     width: 50,
-                    value: 10,
+                    value: options.defaultSteps.size || 1,
                     type: 'number',
                     min: 1,
                     max: 100000
@@ -149,7 +170,7 @@ export function createOptions(data = {}, options = {}) {
                     name: 'position',
                     title: 'Position',
                     width: 50,
-                    value: 10,
+                    value: options.defaultSteps.position || 1,
                     type: 'number',
                     min: 1,
                     max: 100000
@@ -158,10 +179,19 @@ export function createOptions(data = {}, options = {}) {
                     name: 'rotation',
                     title: 'Rotation',
                     width: 50,
-                    value: 1,
+                    value: options.defaultSteps.rotation || 1,
                     type: 'number',
                     min: 1,
                     max: 90
+                },
+                {
+                    name: 'apply',
+                    icon:'done',
+                    datas: [
+                        'data-type="option_button"',
+                        'data-category="defaultSteps"',
+                    ],
+                    func:createButton
                 }
             ]
         },
@@ -182,6 +212,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.position.x : 0,
                         type: 'number',
+                        step:options.defaultSteps.position
                     },
                     {
                         name: 'y',
@@ -189,6 +220,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.position.y : 0,
                         type: 'number',
+                        step:options.defaultSteps.position
                     },
                     {
                         name: 'z',
@@ -196,6 +228,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.position.z : 0,
                         type: 'number',
+                        step:options.defaultSteps.position
                     }
                 ]
             },
@@ -215,6 +248,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.rotation.x : 0,
                         type: 'number',
+                        step:options.defaultSteps.rotation
                     },
                     {
                         name: 'y',
@@ -222,6 +256,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.rotation.y : 0,
                         type: 'number',
+                        step:options.defaultSteps.rotation
                     },
                     {
                         name: 'z',
@@ -229,6 +264,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.rotation.z : 0,
                         type: 'number',
+                        step:options.defaultSteps.rotation
                     }
                 ]
             },
@@ -251,6 +287,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.content.position.x : 0,
                         type: 'number',
+                        step:options.defaultSteps.position
                     },
                     {
                         name: 'y',
@@ -258,6 +295,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.content.position.y : 0,
                         type: 'number',
+                        step:options.defaultSteps.position
                     },
                     {
                         name: 'z',
@@ -265,6 +303,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.content.position.z : 0,
                         type: 'number',
+                        step:options.defaultSteps.position
                     }
                 ]
             },
@@ -284,6 +323,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.content.size.x : 0,
                         type: 'number',
+                        step:options.defaultSteps.size
                     },
                     {
                         name: 'y',
@@ -291,6 +331,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.content.size.y : 0,
                         type: 'number',
+                        step:options.defaultSteps.size
                     },
                     {
                         name: 'z',
@@ -298,6 +339,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: model? model.content.size.z : 0,
                         type: 'number',
+                        step:options.defaultSteps.size
                     }
                 ]
             },
@@ -317,6 +359,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: 0,
                         type: 'number',
+                        step:options.defaultSteps.rotation
                     },
                     {
                         name: 'y',
@@ -324,6 +367,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: 0,
                         type: 'number',
+                        step:options.defaultSteps.rotation
                     },
                     {
                         name: 'z',
@@ -331,6 +375,7 @@ export function createOptions(data = {}, options = {}) {
                         width: 50,
                         value: 0,
                         type: 'number',
+                        step:options.defaultSteps.rotation
                     }
                 ]
             },
@@ -349,7 +394,7 @@ export function createOptions(data = {}, options = {}) {
     return `
         <div class="options-container" data-type="options-container" data-id="options_${dataId}">
             <div class="options__box main_control">
-                    <h5>Selected</h5>
+<!--                    <h5>Selected</h5>-->
                     <div class="flex">
                         <div class="label">Name:</div>
                         ${createItems(blocks.selected)}
@@ -362,7 +407,17 @@ export function createOptions(data = {}, options = {}) {
                 <h5>Main options</h5>
                 <div class="flex">
                     <div class="label">Opacity:</div>
-                    <input class="mdl-slider mdl-js-slider" type="range" min="0" max="1" step="0.1" value="${opacity}" tabindex="0">
+                    <input 
+                        class="mdl-slider mdl-js-slider" 
+                        data-needUpgrade="1" 
+                        type="range" min="0" 
+                        max="1" 
+                        step="0.1" 
+                        value="${opacity}" 
+                        tabindex="0"
+                        data-type="option_input"
+                        data-name="option_opacity"
+                    >
                 </div>
                 <div class="flex between">
                     <div class="label">Default step:</div>

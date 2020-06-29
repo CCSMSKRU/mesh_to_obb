@@ -92,7 +92,8 @@ class Dom {
     }
 
     findAll(selector) {
-        return this.$el.querySelectorAll(selector)
+        const els = this.$el.querySelectorAll(selector)
+        return [...els].map(one=>$(one))
     }
 
     attr(attributes = {}) {

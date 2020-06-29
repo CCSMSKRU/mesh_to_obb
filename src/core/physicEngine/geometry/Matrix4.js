@@ -51,8 +51,8 @@ export class Matrix4 extends Matrix{
         this.scale = (...coors) => {
             // var v = (coors[0] instanceof Vector3)? coors[0] : new Vector3(...coors);
             let x = (coors[0] instanceof Vector3) ? coors[0].x : coors[0];
-            let y = (coors[0] instanceof Vector3) ? coors[1].y : coors[1];
-            let z = (coors[0] instanceof Vector3) ? coors[2].z : coors[2];
+            let y = (coors[0] instanceof Vector3) ? coors[0].y : coors[1];
+            let z = (coors[0] instanceof Vector3) ? coors[0].z : coors[2];
             return new Matrix4(
                 x, 0, 0, 0,
                 0, y, 0, 0,
@@ -101,9 +101,14 @@ export class Matrix4 extends Matrix{
             return res
         }
 
-        this.transformEuler = (scale, eulerTartaion, translate)=>{
+        this.transformEuler = (scale, eulerTartaion_OR_orientation, translate)=>{
+            if (eulerTartaion_OR_orientation instanceof Matrix){
+                return this.scale(scale).multiply(eulerTartaion_OR_orientation).multiply(
+                    this.translation(translate)
+                );
+            }
             return this.scale(scale).multiply(
-                this.rotation(eulerTartaion.x, eulerTartaion.y, eulerTartaion.y)
+                this.rotation(eulerTartaion_OR_orientation.x, eulerTartaion_OR_orientation.y, eulerTartaion_OR_orientation.y)
             ).multiply(
                 this.translation(translate)
             );

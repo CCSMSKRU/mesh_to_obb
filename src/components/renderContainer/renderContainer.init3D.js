@@ -27,7 +27,8 @@ export const init3D = (options = {}) => {
                         backgroundColor: 'rgba(203,231,255,0.45)',
                         // border: '1px solid'
                     },
-                    axesHelper: true
+                    axesHelper: true,
+                    // drawBounds: true,
                 }
             },
             ...options
