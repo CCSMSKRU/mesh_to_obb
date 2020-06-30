@@ -334,12 +334,30 @@ export function createOptions(data = {}, options = {}) {
                         step:options.defaultSteps.size
                     },
                     {
+                        name: 'autoY',
+                        icon:'flip_to_back',
+                        datas: [
+                            'data-type="option_button"',
+                            'data-category="boxSize"',
+                        ],
+                        func:createButton
+                    },
+                    {
                         name: 'z',
                         title: 'Z',
                         width: 50,
                         value: model? model.content.size.z : 0,
                         type: 'number',
                         step:options.defaultSteps.size
+                    },
+                    {
+                        name: 'autoZ',
+                        icon:'flip_to_back',
+                        datas: [
+                            'data-type="option_button"',
+                            'data-category="boxSize"',
+                        ],
+                        func:createButton
                     }
                 ]
             },

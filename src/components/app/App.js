@@ -65,7 +65,7 @@ export class App {
         this.$on('options:applyDefaultSteps', (e)=>{
             this.project.options.model.defaultSteps = e.value
             if (this.project.model) {
-                this.$emit('project:selectModel')
+                this.$emit('project:updateModel')
             }
         })
 
@@ -122,6 +122,17 @@ export class App {
         this.$on('options:boxSize_z', (e)=>{
             this.project.sizeContentZSelected(e.value)
         })
+
+        this.$on('options:boxSize_autoY', (e)=>{
+            this.project.setSizeYByMash()
+            this.$emit('project:updateModel')
+        })
+
+        this.$on('options:boxSize_autoZ', (e)=>{
+            this.project.setSizeZByMash()
+            this.$emit('project:updateModel')
+        })
+
 
 
 

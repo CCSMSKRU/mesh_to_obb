@@ -5,7 +5,7 @@
  */
 
 import {v4 as uuidv4} from 'uuid'
-import {Model, OBB} from '@core/physicEngine/geometry/Geometry3D'
+import {Model, OBB, AABB} from '@core/physicEngine/geometry/Geometry3D'
 import {loadModel} from '@/logicComponents/project/project.functions'
 import {Vector3} from '@core/physicEngine/geometry/Vector3'
 import {Matrix3} from '@core/physicEngine/geometry/Matrix3'
@@ -187,6 +187,70 @@ export class Project {
     sizeContentZSelected(val){
         if (!this.selectedModel) return
         this.selectedModel.sizeZ(val)
+    }
+
+    getSizeYByMash(){
+        if (!this.selectedModel || !this.meshModel) return null
+        const vertices = this.meshModel.verticesAll
+        const boundsFull = this.selectedModel.boundsFull
+        const minX = boundsFull.getMin().x
+        const maxX = boundsFull.getMax().x
+        const filtred = vertices.filter(one=>{
+            return one.x >= minX && one.x <= maxX
+        })
+        let min, max
+        filtred.forEach(one=>{
+            if (!min) min = new Vector3(one.x, one.y, one.z)
+            if (!max) max = new Vector3(one.x, one.y, one.z)
+            min.x = Math.min(one.x, min.x)
+            min.y = Math.min(one.y, min.y)
+            min.z = Math.min(one.z, min.z)
+
+            max.x = Math.max(one.x, max.x)
+            max.y = Math.max(one.y, max.y)
+            max.z = Math.max(one.z, max.z)
+        })
+        if (!min) min = new Vector3()
+        if (!max) max = new Vector3()
+        return AABB.fromMinMax(min, max)
+    }
+
+    getSizeZByMash(){
+        if (!this.selectedModel || !this.meshModel) return null
+        const vertices = this.meshModel.verticesAll
+        const minX = this.selectedModel.boundsFull.getMin().x
+        const maxX = this.selectedModel.boundsFull.getMax().x
+        const minY = this.selectedModel.boundsFull.getMin().y
+        const maxY = this.selectedModel.boundsFull.getMax().y
+        const filtred = vertices.filter(one=>{
+            return one.x >= minX && one.x <= maxX && one.y >= minY && one.y <= maxY
+        })
+        let min, max
+        filtred.forEach(one=>{
+            if (!min) min = new Vector3(one.x, one.y, one.z)
+            if (!max) max = new Vector3(one.x, one.y, one.z)
+            min.x = Math.min(one.x, min.x)
+            min.y = Math.min(one.y, min.y)
+            min.z = Math.min(one.z, min.z)
+
+            max.x = Math.max(one.x, max.x)
+            max.y = Math.max(one.y, max.y)
+            max.z = Math.max(one.z, max.z)
+        })
+        return AABB.fromMinMax(min, max)
+    }
+
+
+    setSizeYByMash(){
+        if (!this.selectedModel || !this.meshModel) return null
+        const aabb = this.getSizeYByMash()
+        this.sizeContentYSelected(aabb.size.y)
+    }
+
+    setSizeZByMash(){
+        if (!this.selectedModel || !this.meshModel) return null
+        const aabb = this.getSizeZByMash()
+        this.sizeContentZSelected(aabb.size.z)
     }
 
 }

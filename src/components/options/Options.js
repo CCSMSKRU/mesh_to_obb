@@ -28,6 +28,10 @@ export class Options extends Component {
         this.$on('project:selectModel', (e)=>{
             this.render()
         })
+
+        this.$on('project:updateModel', (e)=>{
+            this.render()
+        })
     }
 
     render(){
@@ -66,6 +70,8 @@ export class Options extends Component {
             if ($target.data.name === 'addChild') this.$emit('options:addChild')
         } else if ($target.data.category === 'defaultSteps') {
             if ($target.data.name === 'apply') return this.$emit('options:applyDefaultSteps', {value:this.defaultSteps})
+        } else if ($target.data.category === 'boxSize') {
+            return this.$emit(`options:boxSize_${$target.data.name}`)
         }
 
     }
