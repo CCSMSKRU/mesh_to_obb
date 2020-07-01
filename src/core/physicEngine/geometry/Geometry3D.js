@@ -1294,7 +1294,7 @@ export class Model {
                 case 'OBB':
                     pos = new Vector3(obj.content.position._x, obj.content.position._y, obj.content.position._z)
                     size = new Vector3(obj.content.size._x, obj.content.size._y, obj.content.size._z)
-                    const orientation = new Matrix3(...[...obj.content.orientation[0], ...obj.content.orientation[1], ...obj.content.orientation[2]])
+                    orientation = new Matrix3(...[...obj.content.orientation[0], ...obj.content.orientation[1], ...obj.content.orientation[2]])
                     content = new OBB(pos, size, orientation)
                     break
                 default:
@@ -1352,10 +1352,10 @@ export class Model {
     }
 
 
-    getForJSON() {
+    getForStore() {
         const res = {
             content: this.content && getPrimitiveInstanceName(this.content) ? this.content : null,
-            childs: this.childs.map(child => child.getForJSON()),
+            childs: this.childs.map(child => child.getForStore()),
             position:this.position,
             rotation:this.rotation,
             graphicOptions:this.graphicOptions,
@@ -1812,7 +1812,6 @@ export class Model {
     rotate(vRotate) {
         if (!vRotate) return
         this._rotation = this._rotation.add(vRotate)
-        console.log('this._rotation', this._rotation)
         // Обнулим _boundsFull чтобы они посчитались при следующей необходимости заново
         this.clearBoundsFull()
     }

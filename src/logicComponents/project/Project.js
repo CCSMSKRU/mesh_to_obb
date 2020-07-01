@@ -117,15 +117,15 @@ export class Project {
 
     }
 
-    toJSON() {
+    getForStore() {
         const res = {
             id:this.id,
             name:this.name,
             options:this.options,
-            model: this.model? this.model.getForJSON() : null
+            model: this.model? this.model.getForStore() : null
         }
 
-        return JSON.stringify(res)
+        return res
     }
 
     saveToJSON(){

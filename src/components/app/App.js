@@ -23,10 +23,8 @@ export class App {
     init() {
 
 
-
-
-        this.$on('toolbar:loadMesh', (e)=>{
-            const loadMesh = async ()=>{
+        this.$on('toolbar:loadMesh', (e) => {
+            const loadMesh = async () => {
                 await this.project.loadMeshUrl(e.file)
                 this.$emit('project:loadMeshUrl')
 
@@ -34,105 +32,103 @@ export class App {
                 this.$emit('project:loadMeshModel')
             }
 
-            loadMesh().catch(e=>{
-                console.error(e);
+            loadMesh().catch(e => {
+                console.error(e)
             })
 
         })
 
-        this.$on('toolbar:saveProject', (e)=>{
+        this.$on('toolbar:saveProject', (e) => {
             this.saveProject()
         })
 
-        this.$on('tree:selectModel', (e)=>{
+        this.$on('tree:selectModel', (e) => {
             this.project.selectModel(e.value)
             this.$emit('project:selectModel')
         })
 
-        this.$on('options:changeName', (e)=>{
+        this.$on('options:changeName', (e) => {
             this.project.renameSelected(e.value)
             this.$emit('project:changeName')
         })
 
-        this.$on('options:opacity', (e)=>{
+        this.$on('options:opacity', (e) => {
             if (this.project.model) {
                 this.project.model.graphicOptions.opacity = e.value
                 this.project.model.graphicOptions.needUpdate = true
             }
         })
 
-        this.$on('options:applyDefaultSteps', (e)=>{
+        this.$on('options:applyDefaultSteps', (e) => {
             this.project.options.model.defaultSteps = e.value
             if (this.project.model) {
                 this.$emit('project:updateModel')
             }
         })
 
-        this.$on('options:addChild', (e)=>{
+        this.$on('options:addChild', (e) => {
             this.project.addChild()
             this.$emit('project:selectModel')
         })
 
-        this.$on('options:removeModel', (e)=>{
+        this.$on('options:removeModel', (e) => {
             this.project.removeModel()
         })
 
 
         // boxContainerPosition
-        this.$on('options:boxContainerPosition_x', (e)=>{
+        this.$on('options:boxContainerPosition_x', (e) => {
             this.project.moveXSelected(e.value)
         })
-        this.$on('options:boxContainerPosition_y', (e)=>{
+        this.$on('options:boxContainerPosition_y', (e) => {
             this.project.moveYSelected(e.value)
         })
-        this.$on('options:boxContainerPosition_z', (e)=>{
+        this.$on('options:boxContainerPosition_z', (e) => {
             this.project.moveZSelected(e.value)
         })
 
         // boxContainerRotation
-        this.$on('options:boxContainerRotation_x', (e)=>{
+        this.$on('options:boxContainerRotation_x', (e) => {
             this.project.rotateXSelected(e.value)
         })
-        this.$on('options:boxContainerRotation_y', (e)=>{
+        this.$on('options:boxContainerRotation_y', (e) => {
             this.project.rotateYSelected(e.value)
         })
-        this.$on('options:boxContainerRotation_z', (e)=>{
+        this.$on('options:boxContainerRotation_z', (e) => {
             this.project.rotateZSelected(e.value)
         })
 
         // boxPosition
-        this.$on('options:boxPosition_x', (e)=>{
+        this.$on('options:boxPosition_x', (e) => {
             this.project.moveContentXSelected(e.value)
         })
-        this.$on('options:boxPosition_y', (e)=>{
+        this.$on('options:boxPosition_y', (e) => {
             this.project.moveContentYSelected(e.value)
         })
-        this.$on('options:boxPosition_z', (e)=>{
+        this.$on('options:boxPosition_z', (e) => {
             this.project.moveContentZSelected(e.value)
         })
 
         // boxSize
-        this.$on('options:boxSize_x', (e)=>{
+        this.$on('options:boxSize_x', (e) => {
             this.project.sizeContentXSelected(e.value)
         })
-        this.$on('options:boxSize_y', (e)=>{
+        this.$on('options:boxSize_y', (e) => {
             this.project.sizeContentYSelected(e.value)
         })
-        this.$on('options:boxSize_z', (e)=>{
+        this.$on('options:boxSize_z', (e) => {
             this.project.sizeContentZSelected(e.value)
         })
 
-        this.$on('options:boxSize_autoY', (e)=>{
+        this.$on('options:boxSize_autoY', (e) => {
             this.project.setSizeYByMash()
             this.$emit('project:updateModel')
         })
 
-        this.$on('options:boxSize_autoZ', (e)=>{
+        this.$on('options:boxSize_autoZ', (e) => {
             this.project.setSizeZByMash()
             this.$emit('project:updateModel')
         })
-
-
 
 
     }
@@ -158,7 +154,7 @@ export class App {
             const $el = $.create('div', Component.className)
             const component = new Component($el, componentOptions)
             $el.html(component.toHTML())
-            const container = component.wrapperSelector? $root.find(component.wrapperSelector) : $root
+            const container = component.wrapperSelector ? $root.find(component.wrapperSelector) : $root
             container.append($el)
             return component
         })
@@ -179,7 +175,7 @@ export class App {
         this.unsubscribers.forEach(unsub => unsub())
     }
 
-    projectInit(){
+    projectInit() {
         this.project.init()
         this.$emit('project:loadProject')
 
@@ -189,22 +185,53 @@ export class App {
         this.project.loadModel()
         this.$emit('project:loadModel')
         this.$emit('project:selectModel')
-        console.log('this.project', this.project);
+        console.log('this.project', this.project)
+
+        setTimeout(()=>{
+            let projects
+            try {
+                projects = JSON.parse(localStorage.getItem('projects'))
+            } catch (e) {
+                console.error('Error while parsing localStorage "projects"', e, localStorage.getItem('projects'))
+            }
+            console.log('projects', projects);
+            if (projects.length){
+                this.loadProject(projects[projects.length -1])
+            }
+        }, 1000)
     }
 
     saveProject() {
-        let json = this.project.toJSON()
-        this.loadProject(json)
+        // let json = this.project.toJSON()
+        // this.loadProject(json)
+        // const projects localStorage.setItem('myCat', 'Tom');
+        let projects
+        try {
+            projects = JSON.parse(localStorage.getItem('projects'))
+        } catch (e) {
+            console.error('Error while parsing localStorage "projects"', e, localStorage.getItem('projects'))
+        }
+        if (!projects || !Array.isArray(projects)) projects = []
+
+        let finded
+        projects = projects.map(one => {
+            if (one.id === this.project.id) {
+                finded = true
+                return this.project.getForStore()
+            }
+            return one
+        })
+        if (!finded) {
+            projects.push(this.project.getForStore())
+        }
+        localStorage.setItem('projects', JSON.stringify(projects))
+        // localStorage.setItem('projects', projects);
     }
 
-    loadProject(json) {
-        let projObj
-        try {
-            projObj = JSON.parse(json)
-        } catch (e) {
-            console.error('Error while loading project from JSON', e)
-        }
+    loadProject(projObj) {
         if (!projObj) return
+
+        console.log('projObj', projObj);
 
         const project = new Project(projObj)
         project.init()
@@ -214,8 +241,8 @@ export class App {
 
         if (projObj.model) {
             const model = Model.fromOBJ(projObj.model)
-            console.log('projObj.model', projObj.model);
-            console.log('model', model);
+            console.log('projObj.model', projObj.model)
+            console.log('model', model)
             // return
             project.loadModel(Model.fromOBJ(projObj.model))
         }
