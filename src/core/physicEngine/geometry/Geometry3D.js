@@ -1348,6 +1348,9 @@ export class Model {
         this._parent = null
         this._childs.forEach(one => one.destroy())
         this._childs = null
+        // if (this.type === 'THREEJS_OBJ'){
+        //     this._content.geometry.dispose()
+        // }
         this._content = null
     }
 
