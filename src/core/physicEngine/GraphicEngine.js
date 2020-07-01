@@ -724,6 +724,8 @@ export class GraphicEngine {
         }
 
         if (model.type === 'THREEJS_OBJ'){
+            // console.log('askasdjkasjdkasjdkasjldjkl',model.name);
+            model.content.name = model.name
             this.scene3D.add(model.content)
             return
         }

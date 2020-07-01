@@ -40,6 +40,14 @@ export class Project {
 
     }
 
+    destroy() {
+        if (this.model && typeof this.model.destroy === 'function') this.model.destroy()
+        if (this.meshModel && typeof this.meshModel.destroy === 'function') this.meshModel.destroy()
+        delete this.model
+        delete this.meshFile
+        delete this.meshModel
+    }
+
     loadMeshUrl(file) {
         return new Promise((res, rej) => {
             this.meshFile = file

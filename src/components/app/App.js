@@ -39,6 +39,19 @@ export class App {
 
         })
 
+        this.$on('toolbar:loadProject', (e) => {
+            let projects
+            try {
+                projects = JSON.parse(localStorage.getItem('projects'))
+            } catch (e) {
+                console.error('Error while parsing localStorage "projects"', e, localStorage.getItem('projects'))
+            }
+            console.log('projects', projects);
+            if (projects.length){
+                this.loadProject(projects[projects.length -1])
+            }
+        })
+
         this.$on('toolbar:saveProject', (e) => {
             this.saveProject()
         })
@@ -192,18 +205,18 @@ export class App {
         this.$emit('project:selectModel')
         console.log('this.project', this.project)
 
-        setTimeout(()=>{
-            let projects
-            try {
-                projects = JSON.parse(localStorage.getItem('projects'))
-            } catch (e) {
-                console.error('Error while parsing localStorage "projects"', e, localStorage.getItem('projects'))
-            }
-            console.log('projects', projects);
-            if (projects.length){
-                this.loadProject(projects[projects.length -1])
-            }
-        }, 1000)
+        // setTimeout(()=>{
+        //     let projects
+        //     try {
+        //         projects = JSON.parse(localStorage.getItem('projects'))
+        //     } catch (e) {
+        //         console.error('Error while parsing localStorage "projects"', e, localStorage.getItem('projects'))
+        //     }
+        //     console.log('projects', projects);
+        //     if (projects.length){
+        //         this.loadProject(projects[projects.length -1])
+        //     }
+        // }, 1000)
     }
 
     saveProject() {
@@ -244,7 +257,7 @@ export class App {
 
         const project = new Project(projObj)
         project.init()
-
+        this.project.destroy()
         this.project = project
         this.$emit('project:loadProject')
 

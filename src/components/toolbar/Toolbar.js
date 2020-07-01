@@ -62,6 +62,10 @@ export class Toolbar extends Component {
                         action: loadMesh
                     },
                     {
+                        name: 'loadProject',
+                        icon: 'input'
+                    },
+                    {
                         name: 'saveProject',
                         icon: 'save'
                     },
@@ -83,6 +87,7 @@ export class Toolbar extends Component {
 
         if ($target.data.category === 'toolbar1'){
             if ($target.data.name === 'loadMesh') loadMesh.call(this, e)
+            if ($target.data.name === 'loadProject') this.$emit('toolbar:loadProject')
             if ($target.data.name === 'saveProject') this.$emit('toolbar:saveProject')
             if ($target.data.name === 'downloadProject') this.$emit('toolbar:downloadProject')
         }

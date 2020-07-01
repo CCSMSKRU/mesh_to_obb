@@ -41,7 +41,7 @@ export class RenderContainer extends Component {
 
         this.$on('project:loadMeshModel', (e)=>{
             this.project.scene.addModel(this.project.meshModel)
-            // this.pEngine.addModelTo3D(this.project.meshModel)
+            this.pEngine.addModelTo3D(this.project.meshModel)
         })
     }
 
