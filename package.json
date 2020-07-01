@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.8.7",
+    "has-setter": "^1.0.0",
     "material-design-lite": "^1.3.0",
     "material-icons": "^0.3.1",
     "normalize.css": "^8.0.1",

@@ -12,20 +12,7 @@ export function loadMesh(){
     const _t = this
     input.$el.onchange = e => {
         var file = e.target.files[0]
-        // _t.project.meshFile = file
         this.$emit('toolbar:loadMesh', {file})
-        // console.log(file)
-        // var reader = new FileReader();
-        // reader.onload = (r)=>{
-        //
-        //     this.project.meshUrl = reader.result
-        // }
-        // reader.onerror = (error)=>{
-        //     console.error('error while reading file',error);
-        // }
-        // reader.readAsDataURL(file);
-
-
     }
 
 }

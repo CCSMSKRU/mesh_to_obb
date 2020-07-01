@@ -25,6 +25,11 @@ export class Scene {
         this._objects = this._objects.filter(one => one !== model)
     }
 
+    clear() {
+        this._objects.forEach(obj=>this.removeModel(obj))
+        this.cleared = true
+    }
+
     updateModel(model) {
         this.removeModel(model)
         this.addModel(model)

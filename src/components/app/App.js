@@ -7,6 +7,7 @@
 import {$} from '@core/dom'
 import {Emitter} from '@core/Emitter'
 import {Project} from '@/logicComponents/project/Project'
+import {Model} from '@core/physicEngine/geometry/Geometry3D'
 
 export class App {
     constructor(selector, options) {
@@ -16,18 +17,12 @@ export class App {
         this.emitter = new Emitter()
         this.unsubscribers = []
         this.project = new Project()
+        // this.project = {}
     }
 
     init() {
 
-        // this.pEngine = init3D()
 
-
-        this.project.init()
-
-        this.project.loadModel().then(()=>{
-            this.$emit('project:loadModel')
-        })
 
 
         this.$on('toolbar:loadMesh', (e)=>{
@@ -43,6 +38,10 @@ export class App {
                 console.error(e);
             })
 
+        })
+
+        this.$on('toolbar:saveProject', (e)=>{
+            this.saveProject()
         })
 
         this.$on('tree:selectModel', (e)=>{
@@ -152,7 +151,7 @@ export class App {
 
         const componentOptions = {
             emitter: this.emitter,
-            project: this.project
+            app: this
         }
 
         this.components = this.components.map(Component => {
@@ -180,7 +179,50 @@ export class App {
         this.unsubscribers.forEach(unsub => unsub())
     }
 
-    loadProject() {
+    projectInit(){
+        this.project.init()
+        this.$emit('project:loadProject')
+
+        // this.project.loadModel().then(()=>{
+        //     this.$emit('project:loadModel')
+        // })
+        this.project.loadModel()
+        this.$emit('project:loadModel')
+        this.$emit('project:selectModel')
+        console.log('this.project', this.project);
+    }
+
+    saveProject() {
+        let json = this.project.toJSON()
+        this.loadProject(json)
+    }
+
+    loadProject(json) {
+        let projObj
+        try {
+            projObj = JSON.parse(json)
+        } catch (e) {
+            console.error('Error while loading project from JSON', e)
+        }
+        if (!projObj) return
+
+        const project = new Project(projObj)
+        project.init()
+
+        this.project = project
+        this.$emit('project:loadProject')
+
+        if (projObj.model) {
+            const model = Model.fromOBJ(projObj.model)
+            console.log('projObj.model', projObj.model);
+            console.log('model', model);
+            // return
+            project.loadModel(Model.fromOBJ(projObj.model))
+        }
+
+        this.$emit('project:loadModel')
+        this.$emit('project:selectModel')
+
 
     }
 }

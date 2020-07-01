@@ -21,3 +21,4 @@ const app = new App('#app', {
 
 app.init()
 app.render()
+app.projectInit()

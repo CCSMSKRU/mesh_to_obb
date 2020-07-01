@@ -6,7 +6,7 @@
 
 import {v4 as uuidv4} from 'uuid'
 import {Model, OBB, AABB} from '@core/physicEngine/geometry/Geometry3D'
-import {loadModel} from '@/logicComponents/project/project.functions'
+import {loadThreeJSModel} from '@/logicComponents/project/project.functions'
 import {Vector3} from '@core/physicEngine/geometry/Vector3'
 import {Matrix3} from '@core/physicEngine/geometry/Matrix3'
 
@@ -20,8 +20,8 @@ export class Project {
         this.options = {
             model: {
                 opacity: 0.8,
-                drawCenters:true,
-                selectedColor:'#ff0000',
+                drawCenters: true,
+                selectedColor: '#ff0000',
                 defaultSteps: {
                     size: 100,
                     position: 100,
@@ -59,7 +59,7 @@ export class Project {
 
     loadMeshModel() {
 
-        return loadModel(this.meshUrl)
+        return loadThreeJSModel(this.meshUrl)
             .then(object => {
                 this.meshModel = new Model({
                     name: 'modelThreejs',
@@ -71,33 +71,91 @@ export class Project {
 
     }
 
-    loadModel() {
-
-        return new Promise((res, rej) => {
+    loadModel(modelOrObj = {}) {
+        if (modelOrObj instanceof Model){
+            this.model = modelOrObj
+            this.selectModel(this.model.id)
+        } else {
             this.model = new Model({
-                name: 'Model1',
+                name: typeof modelOrObj.name !== 'undefined' ? modelOrObj.name : 'Model1',
                 // rotation: new Vector3(0, 0, 0),
                 // content: new OBB(new Vector3(1000, 1000, 1000), new Vector3(1000, 1000, 1000))
-                content: new OBB(null, new Vector3(1000, 1000, 1000))
+                content: new OBB(null, new Vector3(100, 100, 100))
             })
 
-            this.model.graphicOptions.opacity = this.options.model.opacity
-            this.model.graphicOptions.drawCenters = this.options.model.drawCenters
-            this.model.graphicOptions.needUpdate = true
+            if (modelOrObj.graphicOptions){
+                this.model.graphicOptions = modelOrObj.graphicOptions
+            } else {
+                this.model.graphicOptions.opacity = this.options.model.opacity
+                this.model.graphicOptions.drawCenters = this.options.model.drawCenters
+                this.model.graphicOptions.needUpdate = true
+            }
 
             this.selectModel(this.model.id)
-            res(null)
-        })
+        }
+
+        // return new Promise((res, rej) => {
+        //     this.model = new Model({
+        //         name: typeof modelOrObj.name !== 'undefined' ? modelOrObj.name : 'Model1',
+        //         // rotation: new Vector3(0, 0, 0),
+        //         // content: new OBB(new Vector3(1000, 1000, 1000), new Vector3(1000, 1000, 1000))
+        //         content: new OBB(null, new Vector3(100, 100, 100))
+        //     })
+        //
+        //     if (modelOrObj.graphicOptions){
+        //         this.model.graphicOptions = modelOrObj.graphicOptions
+        //     } else {
+        //         this.model.graphicOptions.opacity = this.options.model.opacity
+        //         this.model.graphicOptions.drawCenters = this.options.model.drawCenters
+        //         this.model.graphicOptions.needUpdate = true
+        //     }
+        //
+        //     this.selectModel(this.model.id)
+        //     res(null)
+        // })
 
 
     }
 
-    addChild(){
+    toJSON() {
+        const res = {
+            id:this.id,
+            name:this.name,
+            options:this.options,
+            model: this.model? this.model.getForJSON() : null
+        }
+
+        return JSON.stringify(res)
+    }
+
+    saveToJSON(){
+        const json = this.toJSON()
+        console.log(json);
+        var o = JSON.parse(json)
+        console.log('o', o);
+
+        return this.toJSON()
+    }
+
+    loadFromJson(json) {
+        let proj
+        try {
+            proj = JSON.parse(json)
+        } catch (e) {
+            console.error('Error while loading project from JSON', e)
+        }
+        if (proj) return
+
+
+
+    }
+
+    addChild() {
         if (!this.selectedModel) return
 
         const model = new Model({
             name: `${this.selectedModel.name}_${this.selectedModel.childs.length + 1}`,
-            content: new OBB(new Vector3(), new Vector3(500, 500, 500))
+            content: new OBB(new Vector3(), new Vector3(100, 100, 100))
         })
 
         // model.graphicOptions.opacity = this.options.model.opacity
@@ -110,8 +168,8 @@ export class Project {
 
     }
 
-    removeModel(){
-        console.log('Not implemented now');
+    removeModel() {
+        console.log('Not implemented now')
     }
 
     selectModel(id) {
@@ -128,78 +186,78 @@ export class Project {
     }
 
     // Container
-    moveXSelected(val){
+    moveXSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.setPositionX(val)
     }
 
-    moveYSelected(val){
+    moveYSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.setPositionY(val)
     }
 
-    moveZSelected(val){
+    moveZSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.setPositionZ(val)
     }
 
-    rotateXSelected(val){
+    rotateXSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.rotateX(val)
     }
 
-    rotateYSelected(val){
+    rotateYSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.rotateY(val)
     }
 
-    rotateZSelected(val){
+    rotateZSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.rotateZ(val)
     }
 
     // Content
-    moveContentXSelected(val){
+    moveContentXSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.setContentPositionX(val)
     }
 
-    moveContentYSelected(val){
+    moveContentYSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.setContentPositionY(val)
     }
 
-    moveContentZSelected(val){
+    moveContentZSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.setContentPositionZ(val)
     }
 
-    sizeContentXSelected(val){
+    sizeContentXSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.sizeX(val)
     }
 
-    sizeContentYSelected(val){
+    sizeContentYSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.sizeY(val)
     }
 
-    sizeContentZSelected(val){
+    sizeContentZSelected(val) {
         if (!this.selectedModel) return
         this.selectedModel.sizeZ(val)
     }
 
-    getSizeYByMash(){
+    getSizeYByMash() {
         if (!this.selectedModel || !this.meshModel) return null
         const vertices = this.meshModel.verticesAll
         const boundsFull = this.selectedModel.boundsFull
         const minX = boundsFull.getMin().x
         const maxX = boundsFull.getMax().x
-        const filtred = vertices.filter(one=>{
+        const filtred = vertices.filter(one => {
             return one.x >= minX && one.x <= maxX
         })
         let min, max
-        filtred.forEach(one=>{
+        filtred.forEach(one => {
             if (!min) min = new Vector3(one.x, one.y, one.z)
             if (!max) max = new Vector3(one.x, one.y, one.z)
             min.x = Math.min(one.x, min.x)
@@ -215,18 +273,18 @@ export class Project {
         return AABB.fromMinMax(min, max)
     }
 
-    getSizeZByMash(){
+    getSizeZByMash() {
         if (!this.selectedModel || !this.meshModel) return null
         const vertices = this.meshModel.verticesAll
         const minX = this.selectedModel.boundsFull.getMin().x
         const maxX = this.selectedModel.boundsFull.getMax().x
         const minY = this.selectedModel.boundsFull.getMin().y
         const maxY = this.selectedModel.boundsFull.getMax().y
-        const filtred = vertices.filter(one=>{
+        const filtred = vertices.filter(one => {
             return one.x >= minX && one.x <= maxX && one.y >= minY && one.y <= maxY
         })
         let min, max
-        filtred.forEach(one=>{
+        filtred.forEach(one => {
             if (!min) min = new Vector3(one.x, one.y, one.z)
             if (!max) max = new Vector3(one.x, one.y, one.z)
             min.x = Math.min(one.x, min.x)
@@ -241,13 +299,13 @@ export class Project {
     }
 
 
-    setSizeYByMash(){
+    setSizeYByMash() {
         if (!this.selectedModel || !this.meshModel) return null
         const aabb = this.getSizeYByMash()
         this.sizeContentYSelected(aabb.size.y)
     }
 
-    setSizeZByMash(){
+    setSizeZByMash() {
         if (!this.selectedModel || !this.meshModel) return null
         const aabb = this.getSizeZByMash()
         this.sizeContentZSelected(aabb.size.z)

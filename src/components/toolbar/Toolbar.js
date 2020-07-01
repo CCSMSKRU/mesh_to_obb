@@ -1,6 +1,7 @@
 import {Component} from '@core/Component'
 import {$} from '@core/dom'
 import {loadMesh} from '@/components/toolbar/toolbar.functions'
+import {createButton, createInput, createItems} from '@core/template.functions'
 
 export class Toolbar extends Component {
     static className = 'app__toolbar'
@@ -45,43 +46,42 @@ export class Toolbar extends Component {
 
         const meshName = this.project.meshFile? this.project.meshFile.name : 'Mesh not loaded'
 
-        return `
-            <div class="toolbar__mesh-name">${loading || meshName}</div>
-            ${this.btns.map(btn=>{
-                return `
-                    <div class="button" 
-                        ${dataType}
-                        data-name="${btn.name}"
-                    >
-                        <i class="material-icons" 
-                            ${dataType}
-                            data-name="${btn.name}"
-                        >${btn.icon}</i>
-                    </div>`
-            }).join('')}
-        `
-        //
-        // return this.btns.map(btn=>{
-        //     return `
-        //         <div class="button"
-        //             ${dataType}
-        //             data-name="${btn.name}"
-        //         >
-        //             <i class="material-icons"
-        //                 ${dataType}
-        //                 data-name="${btn.name}"
-        //             >${btn.icon}</i>
-        //         </div>`
-        // }).join('')
+        const blocks = {
+            toolbar1: {
+                func: createButton,
+                options: {
+                    datas: [
+                        'data-type="toolbar_button"',
+                        'data-category="toolbar1"',
+                    ],
+                },
+                items: [
+                    {
+                        name: 'loadMesh',
+                        icon: 'add',
+                        action: loadMesh
+                    },
+                    {
+                        name: 'saveProject',
+                        icon: 'save'
+                    }
+                ]
+            }
+        }
 
+        return `<div class="toolbar__mesh-name">${loading || meshName}</div>
+                    ${createItems(blocks.toolbar1)}`
     }
 
     onClick(e){
         const $target = $(e.target)
-        if ($target.data.type === 'button'){
-            const btn = this.btns.filter(btn=>btn.name === $target.data.name)[0]
-            if (btn && typeof btn.action === 'function') btn.action.call(this, e)
+        if ($target.data.type !== 'toolbar_button') return
+
+        if ($target.data.category === 'toolbar1'){
+            if ($target.data.name === 'loadMesh') loadMesh.call(this, e)
+            if ($target.data.name === 'saveProject') this.$emit('toolbar:saveProject')
         }
+
     }
 
 }

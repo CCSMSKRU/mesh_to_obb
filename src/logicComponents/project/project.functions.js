@@ -6,7 +6,7 @@
 
 import {OBJLoader} from 'three/examples/jsm/loaders/OBJLoader'
 
-export const loadModel = (url)=>{
+export const loadThreeJSModel = (url)=>{
 
     return new Promise((r, reject)=>{
         const loader = new OBJLoader();

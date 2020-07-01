@@ -41,7 +41,6 @@ export class Tree extends Component {
     toHTML() {
         const rootNode = this.project.model || []
         const selectedId = this.project.selectedModel? this.project.selectedModel.id : null
-        console.log('rootNode', rootNode);
         return createTree(rootNode, {selectedId})
     }
 
