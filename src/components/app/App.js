@@ -8,6 +8,7 @@ import {$} from '@core/dom'
 import {Emitter} from '@core/Emitter'
 import {Project} from '@/logicComponents/project/Project'
 import {Model} from '@core/physicEngine/geometry/Geometry3D'
+import {download} from '@core/utils'
 
 export class App {
     constructor(selector, options) {
@@ -40,6 +41,10 @@ export class App {
 
         this.$on('toolbar:saveProject', (e) => {
             this.saveProject()
+        })
+
+        this.$on('toolbar:downloadProject', (e) => {
+            this.downloadProject()
         })
 
         this.$on('tree:selectModel', (e) => {
@@ -226,6 +231,10 @@ export class App {
         }
         localStorage.setItem('projects', JSON.stringify(projects))
         // localStorage.setItem('projects', projects);
+    }
+
+    downloadProject(){
+        download(JSON.stringify(this.project.getForStore()), `${this.project.name}.json`, 'application/json')
     }
 
     loadProject(projObj) {
