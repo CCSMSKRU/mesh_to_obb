@@ -17,8 +17,21 @@
     @include button();
   }
 
-  .toolbar__mesh-name{
+  .toolbar__mesh-name {
     padding: 7px 5px;
+  }
+
+  .toolbar__label {
+    display: flex;
+    border-right: 1px solid $border-color;
+  }
+
+  .label {
+    padding: 5px;
+  }
+
+  .mdl-textfield{
+    padding-top: 0;
   }
 
 }

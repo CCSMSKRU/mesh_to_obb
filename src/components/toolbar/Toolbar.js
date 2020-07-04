@@ -1,7 +1,9 @@
 import {Component} from '@core/Component'
-import {$} from '@core/dom'
+import {$} from '@core/jquery.extends'
 import {loadMesh} from '@/components/toolbar/toolbar.functions'
-import {createButton, createInput, createItems} from '@core/template.functions'
+import {createItems} from '@core/template.functions'
+import {getBlocks} from '@/components/toolbar/toolbar.blocks'
+import * as bootbox from 'bootbox'
 
 export class Toolbar extends Component {
     static className = 'app__toolbar'
@@ -20,7 +22,7 @@ export class Toolbar extends Component {
             {
                 name: 'loadMesh',
                 icon: 'add',
-                action:loadMesh
+                action: loadMesh
             }
         ]
     }
@@ -28,11 +30,11 @@ export class Toolbar extends Component {
     init() {
         super.init()
 
-        this.$on('toolbar:loadMesh', (e)=>{
-            this.render({loading:true})
+        this.$on('toolbar:loadMesh', (e) => {
+            this.render({loading: true})
         })
 
-        this.$on('project:loadMeshUrl', (e)=>{
+        this.$on('project:loadMeshUrl', (e) => {
             this.render()
         })
 
@@ -40,56 +42,42 @@ export class Toolbar extends Component {
 
 
     toHTML(options = {}) {
-        const dataType = `data-type="button"`
+        const blocks = getBlocks(this.project, options)
 
-        const loading = options.loading? 'Loading...' : ''
-
-        const meshName = this.project.meshFile? this.project.meshFile.name : 'Mesh not loaded'
-
-        const blocks = {
-            toolbar1: {
-                func: createButton,
-                options: {
-                    datas: [
-                        'data-type="toolbar_button"',
-                        'data-category="toolbar1"',
-                    ],
-                },
-                items: [
-                    {
-                        name: 'loadMesh',
-                        icon: 'add',
-                        action: loadMesh
-                    },
-                    {
-                        name: 'loadProject',
-                        icon: 'input'
-                    },
-                    {
-                        name: 'saveProject',
-                        icon: 'save'
-                    },
-                    {
-                        name: 'downloadProject',
-                        icon: 'get_app'
-                    }
-                ]
-            }
-        }
-
-        return `<div class="toolbar__mesh-name">${loading || meshName}</div>
-                    ${createItems(blocks.toolbar1)}`
+        return `<div class="toolbar__label">
+                    <div class="label">Project:</div>
+                    ${createItems(blocks.project)}
+                </div>
+                <div class="toolbar__label">
+                    ${createItems(blocks.projectJSON)}
+                </div>
+                <div class="toolbar__label">
+                    <div class="label">Mesh:</div>
+                    ${createItems(blocks.meshInput)}
+                    ${createItems(blocks.meshBtns)}
+                </div>`
     }
 
-    onClick(e){
+    onClick(e) {
         const $target = $(e.target)
-        if ($target.data.type !== 'toolbar_button') return
+        if ($target.data('type') !== 'toolbar_button') return
 
-        if ($target.data.category === 'toolbar1'){
-            if ($target.data.name === 'loadMesh') loadMesh.call(this, e)
-            if ($target.data.name === 'loadProject') this.$emit('toolbar:loadProject')
-            if ($target.data.name === 'saveProject') this.$emit('toolbar:saveProject')
-            if ($target.data.name === 'downloadProject') this.$emit('toolbar:downloadProject')
+        if ($target.data('category') === 'project') {
+            if ($target.data('name') === 'loadMesh') loadMesh.call(this, e)
+            if ($target.data('name') === 'newProject') {
+                bootbox.confirm({
+                    title: "New Project",
+                    message: "All unsaved data will be lost. Are you sure?",
+                    callback: (res) => {
+                        if (res) this.$emit('toolbar:newProject')
+                    }
+                })
+            }
+            if ($target.data('name') === 'loadProject') this.$emit('toolbar:loadProject')
+            if ($target.data('name') === 'saveProject') this.$emit('toolbar:saveProject')
+            if ($target.data('name') === 'downloadProject') this.$emit('toolbar:downloadProject')
+        } else if ($target.data('category') === 'mesh') {
+
         }
 
     }

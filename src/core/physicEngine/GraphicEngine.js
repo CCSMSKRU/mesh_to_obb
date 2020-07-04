@@ -1,4 +1,4 @@
-import {$} from '@core/dom'
+import {$} from '@core/jquery.extends'
 import {Vector3} from '@core/physicEngine/geometry/Vector3'
 import {degToRad, Model, OBB} from '@core/physicEngine/geometry/Geometry3D'
 import * as THREE from 'three'
@@ -340,7 +340,7 @@ export class GraphicEngine {
             .attr(this.options3D.attr)
             .css(this.options3D.css)
         // $renderer3D.css(this.options3D.css)
-        this.container3D.html('').append($renderer3D.$el)
+        this.container3D.html('').append($renderer3D[0])
         // this.container3D.append(this.renderer3D.domElement)
 
         this.controls3D = new OrbitControls(this.camera3D, this.renderer3D.domElement)

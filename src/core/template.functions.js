@@ -25,10 +25,11 @@ export function createInput(item = {}, options = {}) {
     const title = item.title || ''
     const width = item.width || options.width
     const type = item.type || 'text'
+    const attributes = item.attributes || []
     const datas = item.datas || options.datas || []
     const value = typeof item.value !== 'undefined'
         ? item.value
-        : (typeof options.defaultValue? options.defaultValue : null)
+        : (typeof options.defaultValue !== 'undefined'? options.defaultValue : null)
 
     const pattern = item.pattern || patternsForType[type] || ''
     const errorText = item.errorText || errorMessagesForType[type] || ''
@@ -46,6 +47,7 @@ export function createInput(item = {}, options = {}) {
                     id="${id}"
                     data-name="${name}"
                     ${datas.join(' ')}
+                    ${attributes.join(' ')}
                     ${value !== null ? 'value="' + value + '"' : ''}
                     ${typeof min !== 'undefined' ? 'min="' + min + '"' : ''}
                     ${typeof max !== 'undefined' ? 'max="' + max + '"' : ''}
@@ -62,6 +64,7 @@ export function createButton(item = {}, options = {}) {
     const title = item.title || ''
     const width = item.width || options.width
     const datas = item.datas || options.datas || []
+    const hint = item.hint
 
     const icon_html = icon
         ? `<i class="material-icons" ${datas.join(' ')} data-name="${name}">${icon}</i>` : ``
@@ -72,7 +75,10 @@ export function createButton(item = {}, options = {}) {
                 ${datas.join(' ')}
                 data-name="${name}"
                 style="${width ? 'width:' + width + 'px; min-width: initial;' : ''}"
-                    >${title}${icon_html}</div>`
+                ${hint? 'title="' + hint + '"' : ''}
+            >${title}${icon_html}
+                
+            </div>`
 }
 
 export function createSwitch(item = {}, options = {}) {

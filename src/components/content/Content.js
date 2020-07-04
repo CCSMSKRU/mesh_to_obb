@@ -5,8 +5,6 @@
  */
 
 import {Component} from '@core/Component'
-import {$} from '@core/dom'
-import {loadMesh} from '@/components/toolbar/toolbar.functions'
 
 export class Content extends Component {
     static className = 'app__content'

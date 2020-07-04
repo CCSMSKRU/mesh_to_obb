@@ -4,15 +4,18 @@
  * Copyright (c) 2020.
  */
 
-import {$} from '@core/dom'
+import {$} from '@core/jquery.extends'
 import {Emitter} from '@core/Emitter'
 import {Project} from '@/logicComponents/project/Project'
 import {Model} from '@core/physicEngine/geometry/Geometry3D'
 import {download} from '@core/utils'
+import * as bootbox from 'bootbox'
+import * as toastr from 'toastr'
+import {populateProjects} from '@/components/app/app.functions'
 
 export class App {
     constructor(selector, options) {
-        this.$el = $(selector)
+        this.$wrapper = $(selector)
         this.components = options.components || []
 
         this.emitter = new Emitter()
@@ -39,17 +42,70 @@ export class App {
 
         })
 
+        this.$on('toolbar:newProject', (e) => {
+            this.loadProject()
+        })
+
         this.$on('toolbar:loadProject', (e) => {
+
             let projects
             try {
                 projects = JSON.parse(localStorage.getItem('projects'))
             } catch (e) {
+                toastr.error('Error while parsing localStorage "projects". You can clear LocalStorage manually')
                 console.error('Error while parsing localStorage "projects"', e, localStorage.getItem('projects'))
+                return
             }
-            console.log('projects', projects);
+
+            if (!projects.length) return toastr.info('No saved projects')
+
+
+
             if (projects.length){
                 this.loadProject(projects[projects.length -1])
             }
+
+
+
+
+            const html = `
+                    <div class="attention">All unsaved data will be lost. Save current project before!</div>
+                    <div class="load-project-modal-container">
+                        <h5>Projects:</h5>
+                        ${populateProjects(projects)}
+                    </div>
+                `
+
+            const b1 = bootbox.alert({
+                title: "Open Project",
+                message: html
+            })
+            const _t = this
+            b1.find('[data-type="project-row-select"]').off('click').on('click', function(e) {
+                const $this = $(this)
+                const id = $this.data('id')
+                const project = projects.filter(one=>one.id === id)[0]
+                if (project){
+                    b1.modal('hide')
+                    _t.loadProject(project)
+                }
+            })
+
+            b1.find('button[data-type="project-row-remove-btn"]').off('click').on('click', function(e){
+                e.stopPropagation()
+                const $this = $(this)
+                const id = $this.data('id')
+                bootbox.confirm({
+                    title: `Remove Project "${$this.data('name')} (${id})"`,
+                    message: '<div class="attention">Are you sure?</div>',
+                    callback: (res) => {
+                        const err = _t.removeProject(id)
+                        if (!err) $this.parent('.one-project-row').remove()
+                        toastr.success('Project successful deleted')
+                    }
+                })
+            })
+
         })
 
         this.$on('toolbar:saveProject', (e) => {
@@ -58,6 +114,12 @@ export class App {
 
         this.$on('toolbar:downloadProject', (e) => {
             this.downloadProject()
+        })
+
+
+        this.$on('header:changeProjectName', (e) => {
+            this.project.name = e.value
+            this.$emit('project:changeProjectName')
         })
 
         this.$on('tree:selectModel', (e) => {
@@ -90,7 +152,16 @@ export class App {
         })
 
         this.$on('options:removeModel', (e) => {
-            this.project.removeModel()
+
+            bootbox.confirm({
+                title: `Remove model`,
+                message: '<div class="attention">All child models will be deleted. Are you sure?</div>',
+                callback: (res) => {
+                    const err = this.project.removeModel()
+                    if (err) toastr.error(err.message)
+                    this.$emit('project:selectModel')
+                }
+            })
         })
 
 
@@ -161,6 +232,7 @@ export class App {
     }
 
     getRoot() {
+
         const $root = $.create('div', 'app')
 
         const componentOptions = {
@@ -172,7 +244,7 @@ export class App {
             const $el = $.create('div', Component.className)
             const component = new Component($el, componentOptions)
             $el.html(component.toHTML())
-            const container = component.wrapperSelector ? $root.find(component.wrapperSelector) : $root
+            const container = component.wrapperSelector ? $($root.find(component.wrapperSelector)[0]) : $root
             container.append($el)
             return component
         })
@@ -183,7 +255,7 @@ export class App {
     render() {
         // const node = document.createElement('h1')
         // node.textContent = 'TEST'
-        this.$el.append(this.getRoot())
+        this.$wrapper.append(this.getRoot())
 
         this.components.forEach(component => component.init())
     }
@@ -196,27 +268,38 @@ export class App {
     projectInit() {
         this.project.init()
         this.$emit('project:loadProject')
-
-        // this.project.loadModel().then(()=>{
-        //     this.$emit('project:loadModel')
-        // })
         this.project.loadModel()
         this.$emit('project:loadModel')
         this.$emit('project:selectModel')
-        console.log('this.project', this.project)
+    }
 
-        // setTimeout(()=>{
-        //     let projects
-        //     try {
-        //         projects = JSON.parse(localStorage.getItem('projects'))
-        //     } catch (e) {
-        //         console.error('Error while parsing localStorage "projects"', e, localStorage.getItem('projects'))
-        //     }
-        //     console.log('projects', projects);
-        //     if (projects.length){
-        //         this.loadProject(projects[projects.length -1])
-        //     }
-        // }, 1000)
+    // newProject() {
+    //     const project = new Project()
+    //     project.init()
+    //     this.project.destroy()
+    //     this.project = project
+    //     this.$emit('project:loadProject')
+    //     this.$emit('project:loadModel')
+    //     this.$emit('project:selectModel')
+    // }
+
+    removeProject(id) {
+        // let json = this.project.toJSON()
+        // this.loadProject(json)
+        // const projects localStorage.setItem('myCat', 'Tom');
+        let projects
+        try {
+            projects = JSON.parse(localStorage.getItem('projects'))
+        } catch (e) {
+            toastr.error('Error while parsing localStorage "projects". You can clear LocalStorage manually')
+            console.error('Error while parsing localStorage "projects"', e, localStorage.getItem('projects'))
+            return e
+        }
+        if (!projects || !Array.isArray(projects)) projects = []
+
+        projects = projects.filter(one => one.id !== id)
+        localStorage.setItem('projects', JSON.stringify(projects))
+        return false
     }
 
     saveProject() {
@@ -227,7 +310,9 @@ export class App {
         try {
             projects = JSON.parse(localStorage.getItem('projects'))
         } catch (e) {
+            toastr.error('Error while parsing localStorage "projects". You can clear LocalStorage manually')
             console.error('Error while parsing localStorage "projects"', e, localStorage.getItem('projects'))
+            return
         }
         if (!projects || !Array.isArray(projects)) projects = []
 
@@ -250,10 +335,8 @@ export class App {
         download(JSON.stringify(this.project.getForStore()), `${this.project.name}.json`, 'application/json')
     }
 
-    loadProject(projObj) {
+    loadProject(projObj = {}) {
         if (!projObj) return
-
-        console.log('projObj', projObj);
 
         const project = new Project(projObj)
         project.init()
@@ -261,13 +344,19 @@ export class App {
         this.project = project
         this.$emit('project:loadProject')
 
+        let model
         if (projObj.model) {
-            const model = Model.fromOBJ(projObj.model)
-            console.log('projObj.model', projObj.model)
-            console.log('model', model)
-            // return
-            project.loadModel(Model.fromOBJ(projObj.model))
+            model = Model.fromOBJ(projObj.model)
         }
+        project.loadModel(model)
+
+        // if (projObj.model) {
+        //     const model = Model.fromOBJ(projObj.model)
+        //     console.log('projObj.model', projObj.model)
+        //     console.log('model', model)
+        //     // return
+        //     project.loadModel(Model.fromOBJ(projObj.model))
+        // }
 
         this.$emit('project:loadModel')
         this.$emit('project:selectModel')

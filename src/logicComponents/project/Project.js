@@ -176,8 +176,14 @@ export class Project {
 
     }
 
-    removeModel() {
-        console.log('Not implemented now')
+    removeModel(id) {
+        const model = id? this.model.getById(id) : this.selectedModel
+        if (!model) return new Error('Model not found')
+        if (!model.parent) return new Error('Top model can`t be deleted')
+        const parentId = model.parent.id
+        model.parent.removeChild(model)
+        this.selectModel(parentId)
+        return false
     }
 
     selectModel(id) {

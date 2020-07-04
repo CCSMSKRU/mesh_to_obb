@@ -1,0 +1,34 @@
+/*!
+ * Complex Cloud Solutions, LLC (ccs.msk.ru)
+ * Ivan Goptarev
+ * Copyright (c) 2020.
+ */
+
+.modal-dialog {
+  .attention {
+    color: #F00;
+  }
+
+
+
+  .load-project-modal-container {
+    padding: 10px 0;
+
+    max-height: 400px;
+    overflow-y: auto;
+
+    .one-project-row{
+      display: flex;
+      justify-content: space-between;
+
+      border-bottom: 1px solid $border-color;
+      margin-bottom: 2px;
+
+
+      .name {
+        padding-top: 12px;
+      }
+    }
+
+  }
+}

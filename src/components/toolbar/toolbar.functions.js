@@ -1,4 +1,4 @@
-import {$} from '@core/dom'
+import {$} from '@core/jquery.extends'
 // import * as THREE from '~/three/build/three.module.js';
 // import * as THREE from 'three/build/three.module';
 
@@ -7,10 +7,10 @@ export function loadMesh(){
         type:'file',
         name:'meshFile'
     })
-    input.$el.click()
+    input.$wrapper.click()
 
     const _t = this
-    input.$el.onchange = e => {
+    input.$wrapper.onchange = e => {
         var file = e.target.files[0]
         this.$emit('toolbar:loadMesh', {file})
     }
