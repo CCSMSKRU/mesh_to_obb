@@ -42,6 +42,10 @@ export class App {
 
         })
 
+        this.$on('toolbar:removeMesh', (e) => {
+            toastr.info('Method not implemented')
+        })
+
         this.$on('toolbar:newProject', (e) => {
             this.loadProject()
         })
@@ -60,10 +64,10 @@ export class App {
             if (!projects.length) return toastr.info('No saved projects')
 
 
-
-            if (projects.length){
-                this.loadProject(projects[projects.length -1])
-            }
+            //
+            // if (projects.length){
+            //     this.loadProject(projects[projects.length -1])
+            // }
 
 
 
@@ -110,6 +114,10 @@ export class App {
 
         this.$on('toolbar:saveProject', (e) => {
             this.saveProject()
+        })
+
+        this.$on('toolbar:uploadProject', (e) => {
+            toastr.info('Method not implemented')
         })
 
         this.$on('toolbar:downloadProject', (e) => {

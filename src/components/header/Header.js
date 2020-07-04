@@ -16,9 +16,9 @@ export class Header extends Component {
     init(){
         super.init()
 
-        // this.$on('project:changeProjectName', (e)=>{
-        //         //     this.render()
-        //         // })
+        this.$on('project:loadProject', (e) => {
+            this.render()
+        })
     }
 
     toHTML() {

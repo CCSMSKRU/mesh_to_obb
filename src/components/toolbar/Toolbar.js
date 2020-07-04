@@ -63,7 +63,6 @@ export class Toolbar extends Component {
         if ($target.data('type') !== 'toolbar_button') return
 
         if ($target.data('category') === 'project') {
-            if ($target.data('name') === 'loadMesh') loadMesh.call(this, e)
             if ($target.data('name') === 'newProject') {
                 bootbox.confirm({
                     title: "New Project",
@@ -72,12 +71,17 @@ export class Toolbar extends Component {
                         if (res) this.$emit('toolbar:newProject')
                     }
                 })
+            } else {
+                this.$emit(`toolbar:${$target.data('name')}`)
             }
-            if ($target.data('name') === 'loadProject') this.$emit('toolbar:loadProject')
-            if ($target.data('name') === 'saveProject') this.$emit('toolbar:saveProject')
-            if ($target.data('name') === 'downloadProject') this.$emit('toolbar:downloadProject')
-        } else if ($target.data('category') === 'mesh') {
 
+            // if ($target.data('name') === 'loadProject') this.$emit('toolbar:loadProject')
+            // if ($target.data('name') === 'saveProject') this.$emit('toolbar:saveProject')
+            // if ($target.data('name') === 'downloadProject') this.$emit('toolbar:downloadProject')
+            // if ($target.data('name') === 'uploadProject') this.$emit('toolbar:uploadProject')
+        } else if ($target.data('category') === 'mesh') {
+            if ($target.data('name') === 'loadMesh') loadMesh.call(this, e)
+            if ($target.data('name') === 'removeMesh') this.$emit('toolbar:removeMesh')
         }
 
     }
