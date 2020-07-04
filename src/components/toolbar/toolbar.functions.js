@@ -7,12 +7,11 @@ export function loadMesh(){
         type:'file',
         name:'meshFile'
     })
-    input.$wrapper.click()
+    input.click()
 
     const _t = this
-    input.$wrapper.onchange = e => {
+    input.on('change', e => {
         var file = e.target.files[0]
         this.$emit('toolbar:loadMesh', {file})
-    }
-
+    })
 }
