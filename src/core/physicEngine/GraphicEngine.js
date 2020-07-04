@@ -1,4 +1,4 @@
-import {$} from '@core/dom'
+import {$} from '@core/jquery.extends'
 import {Vector3} from '@core/physicEngine/geometry/Vector3'
 import {degToRad, Model, OBB} from '@core/physicEngine/geometry/Geometry3D'
 import * as THREE from 'three'
@@ -340,12 +340,16 @@ export class GraphicEngine {
             .attr(this.options3D.attr)
             .css(this.options3D.css)
         // $renderer3D.css(this.options3D.css)
-        this.container3D.html('').append($renderer3D.$el)
+        this.container3D.html('').append($renderer3D[0])
         // this.container3D.append(this.renderer3D.domElement)
 
         this.controls3D = new OrbitControls(this.camera3D, this.renderer3D.domElement)
 
         // this.angle = 0
+        if (this.options3D.axesHelper){
+            var axesHelper = new THREE.AxesHelper( 50000 );
+            this.scene3D.add( axesHelper );
+        }
 
         const light = new THREE.SpotLight()
         light.position.set(100000, 100000, 100000)
@@ -423,6 +427,17 @@ export class GraphicEngine {
         return this
     }
 
+    clear3DScene(){
+        if (!this.scene3D) return
+        // const ids = this.scene3D.children.filter(one=>one.name).map(one=>one.name.replace(/_.*/ig, ''))
+        this.scene3D.children = this.scene3D.children.filter(one=>!one.name)
+        // this.scene3D.children.forEach(one=>{
+        //     if (!one.name) return
+        //     this.scene3D.remove(one)
+        // })
+        // console.log('this.scene3D.children', this.scene3D.children);
+    }
+
     addToRequestAnimationFrame(func) {
         if (func && !this._renders.includes(func)) this._renders.push(func)
 
@@ -439,7 +454,10 @@ export class GraphicEngine {
     }
 
     stopRequestAnimationFrame() {
-        if (this.requestAnimationFrame) window.cancelAnimationFrame(this.requestAnimationFrame)
+        if (this.requestAnimationFrame) {
+            window.cancelAnimationFrame(this.requestAnimationFrame)
+            this.requestAnimationFrame = undefined
+        }
     }
 
     removeFromRequestAnimationFrame(func) {
@@ -673,7 +691,6 @@ export class GraphicEngine {
     }
 
     addModelTo3D(model, topModel = {}) {
-
         if (model.type === 'OBJ'){
             var loader = new OBJLoader();
             const scene = this.scene3D
@@ -707,6 +724,8 @@ export class GraphicEngine {
         }
 
         if (model.type === 'THREEJS_OBJ'){
+            // console.log('askasdjkasjdkasjdkasjldjkl',model.name);
+            model.content.name = model.name
             this.scene3D.add(model.content)
             return
         }
@@ -746,10 +765,6 @@ export class GraphicEngine {
     }
     renderScene3D(scene) {
 
-        if (this.options3D.axesHelper){
-            var axesHelper = new THREE.AxesHelper( 50000 );
-            this.scene3D.add( axesHelper );
-        }
 
 
         const cameraPosition = this.options3D.cameraPosition
@@ -778,6 +793,8 @@ export class GraphicEngine {
 
     renderModel3D(model, topModel) {
         if (!topModel) topModel = model
+
+        // if ()
 
         if (model.type === 'OBJ' || model.type === 'THREEJS_OBJ') return
         if (model instanceof Model && !model.content) return

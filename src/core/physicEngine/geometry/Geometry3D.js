@@ -1,3 +1,4 @@
+import hasSetter from 'has-setter'
 import {Vector3} from '@core/physicEngine/geometry/Vector3'
 import {Matrix3} from '@core/physicEngine/geometry/Matrix3'
 import {Matrix4} from '@core/physicEngine/geometry/Matrix4'
@@ -182,7 +183,7 @@ export class AABB {
 
     constructor(position, size) {
         this.position = position || new Point3D()
-        this.size = size || new Vector3(0,0,0)
+        this.size = size || new Vector3(0, 0, 0)
     }
 
 
@@ -346,11 +347,11 @@ export class OBB extends AABB {
 
     get rotation() {
         // return new Vector3(this.orientation.)
-        console.warn('OBB get rotation gives a correct result only at angles around the X axis from 0 to 90 degrees (excluding 0 and 90)');
+        console.warn('OBB get rotation gives a correct result only at angles around the X axis from 0 to 90 degrees (excluding 0 and 90)')
         return this.orientation.decomposeYawPitchRoll()
     }
 
-    getBounds(){
+    getBounds() {
         const intervalInstance = new Interval()
         const xI = intervalInstance.getIntervalOBB(this, new Vector3(1, 0, 0))
         const yI = intervalInstance.getIntervalOBB(this, new Vector3(0, 1, 0))
@@ -949,44 +950,42 @@ export class Mesh {
 
     }
 
-    get vertices(){
+    get vertices() {
         return this._vertices
     }
 
-    get triangles(){
+    get triangles() {
         return this._triangles
     }
 
-    get values(){
+    get values() {
         return this._values
     }
 
-    set values(val){
+    set values(val) {
         this._values = val
         this._vertices = []
         this._triangles = []
         let arr = []
-        this._values.forEach(one =>{
+        this._values.forEach(one => {
             this._vertices.push(one)
             arr.push(one)
-            if (arr.length === 3){
+            if (arr.length === 3) {
                 this._triangles.push(new Triangle(...arr))
                 arr = []
             }
         })
     }
 
-    get bounds(){
-        if (!this._bounds){
+    get bounds() {
+        if (!this._bounds) {
             this._bounds = AABB.fromMinMax(this.getMin(), this.getMax())
         }
         return this._bounds
     }
 
 
-
-
-    getMin(){
+    getMin() {
         const min = new Vector3(0, 0, 0)
 
         for (let i = 0; i < this.vertices.length; ++i) {
@@ -999,7 +998,7 @@ export class Mesh {
         return min
     }
 
-    getMax(){
+    getMax() {
         const max = new Vector3(0, 0, 0)
 
         for (let i = 0; i < this.vertices.length; ++i) {
@@ -1030,7 +1029,7 @@ export class Mesh {
         const min = this.getMin()
         const max = this.getMax()
 
-            this.accelerator = new BVHNode()
+        this.accelerator = new BVHNode()
         // const aabbInstance = new AABB()
         this.accelerator.bounds = AABB.fromMinMax(min, max)
         this.accelerator.triangles = [...Object.keys(this.triangles)]
@@ -1283,6 +1282,39 @@ export class BVHNode {
 }
 
 export class Model {
+    static fromOBJ(obj = {}) {
+        let content, pos, size, orientation
+        if (obj.content && obj.content.instanceName){
+            switch (obj.content.instanceName) {
+                case 'AABB':
+                    pos = new Vector3(obj.content.position._x, obj.content.position._y, obj.content.position._z)
+                    size = new Vector3(obj.content.size._x, obj.content.size._y, obj.content.size._z)
+                    content = new AABB(pos, size)
+                    break
+                case 'OBB':
+                    pos = new Vector3(obj.content.position._x, obj.content.position._y, obj.content.position._z)
+                    size = new Vector3(obj.content.size._x, obj.content.size._y, obj.content.size._z)
+                    orientation = new Matrix3(...[...obj.content.orientation[0], ...obj.content.orientation[1], ...obj.content.orientation[2]])
+                    content = new OBB(pos, size, orientation)
+                    break
+                default:
+                    console.warn('Method has not implementation for this instanceName', obj.content.instanceName, obj.content);
+                    break
+            }
+        }
+        const position = obj.position? new Vector3(obj.position._x, obj.position._y, obj.position._z) : null
+        const rotation = obj.rotation? new Vector3(obj.rotation._x, obj.rotation._y, obj.rotation._z) : null
+        const model = new Model({...obj, content, position, rotation})
+
+        if (obj.childs && Array.isArray(obj.childs)){
+            obj.childs.forEach(child => {
+                model.addChild(Model.fromOBJ(child))
+            })
+        }
+        return model
+
+    }
+
     constructor(obj = {}) {
         this.id = uuidv1()
         this.name = obj.name || 'unnamed'
@@ -1296,11 +1328,7 @@ export class Model {
 
 
         this._position = obj.position || new Vector3()
-        this.graphicOptions = {}
-
-
-
-
+        this.graphicOptions = obj.graphicOptions || {}
 
 
         if (obj.content) this.content = obj.content
@@ -1309,22 +1337,47 @@ export class Model {
         if (!this._rotation) this._rotation = new Vector3()
 
 
-        Object.keys(obj).forEach(key=>{
+        Object.keys(obj).forEach(key => {
             if (typeof this[key] === 'undefined') this[key] = obj[key]
         })
 
 
     }
 
-    destroy(){
+    destroy() {
         this._parent = null
-        this._childs.forEach(one=>one.destroy())
+        this._childs.forEach(one => one.destroy())
         this._childs = null
+        // if (this.type === 'THREEJS_OBJ'){
+        //     this._content.geometry.dispose()
+        // }
         this._content = null
     }
 
-    get topModelId(){
-        return this.parent? this.parent.topModelId : this.id
+
+    getForStore() {
+        const res = {
+            content: this.content && getPrimitiveInstanceName(this.content) ? this.content : null,
+            childs: this.childs.map(child => child.getForStore()),
+            position:this.position,
+            rotation:this.rotation,
+            graphicOptions:this.graphicOptions,
+        }
+        if (res.content) res.content.instanceName = getPrimitiveInstanceName(res.content)
+        Object.keys(this).forEach(key => {
+            if (key.charAt(0) === '_') key = key.slice(1)
+            if ((typeof this[key] === 'object' && this[key] !== null) || typeof this[key] === 'function') return
+            if (!(this.hasOwnProperty(key) || hasSetter(this, key))) return
+            res[key] = this[key]
+        })
+
+
+        return res
+    }
+
+
+    get topModelId() {
+        return this.parent ? this.parent.topModelId : this.id
     }
 
     get bounds() {
@@ -1336,7 +1389,7 @@ export class Model {
     }
 
     get boundsFull() {
-        if (!this._boundsFull){
+        if (!this._boundsFull) {
 
 
             let world = this.getWorldMatrix()
@@ -1351,7 +1404,7 @@ export class Model {
             let max = local.getMax()
 
             const bounds = [...this._childs]
-            bounds.forEach(one=>{
+            bounds.forEach(one => {
                 const local = one.boundsFull
                 const oneMin = local.getMin()
                 const oneMax = local.getMax()
@@ -1369,12 +1422,12 @@ export class Model {
         return this._boundsFull
     }
 
-    clearBoundsFull(){
+    clearBoundsFull() {
         this._boundsFull = null
-        this._childs.forEach(one=> one.clearBoundsFull())
+        this._childs.forEach(one => one.clearBoundsFull())
     }
 
-    calcBounds(){
+    calcBounds() {
         if (!this._content) return new AABB()
         if (this.type === 'THREEJS_OBJ') return new AABB()
 
@@ -1435,7 +1488,7 @@ export class Model {
         // // console.log(min, max, this.bounds);
     }
 
-    get rotation(){
+    get rotation() {
         return this._rotation
     }
 
@@ -1444,14 +1497,14 @@ export class Model {
      * All components of the rotation vector will be replaced
      * @param vRotation
      */
-    set rotation(vRotation){
+    set rotation(vRotation) {
         if (!(vRotation instanceof Vector3)) throw new Error('Value must be Vector3')
         this._rotation = vRotation
         // Обнулим _boundsFull чтобы они посчитались при следующей необходимости заново
         this.clearBoundsFull()
     }
 
-    get position(){
+    get position() {
         return this._position
     }
 
@@ -1470,21 +1523,21 @@ export class Model {
         return this._childs
     }
 
-    get verticesAll(){
+    get verticesAll() {
         if (this._verticesAll) return this._verticesAll
         this._verticesAll = []
         if (this.type !== 'THREEJS_OBJ') return this._verticesAll
 
-        function getChildVertices(node){
+        function getChildVertices(node) {
             let vertices = []
-            if (node.geometry){
+            if (node.geometry) {
                 const position = node.geometry.attributes.position
                 const vector = new THREE.Vector3()
 
                 let arr = []
-                position.array.forEach(one=>{
+                position.array.forEach(one => {
                     arr.push(one)
-                    if (arr.length === 3){
+                    if (arr.length === 3) {
                         const vector = new THREE.Vector3(...arr).applyMatrix4(node.matrixWorld)
                         vertices.push(vector)
                         // vertices.push(new Vector3(...arr))
@@ -1521,8 +1574,8 @@ export class Model {
                 //     vertices.push(vector)
                 // }
             }
-            if (node.children && node.children.length){
-                node.children.forEach(child=>{
+            if (node.children && node.children.length) {
+                node.children.forEach(child => {
                     vertices = vertices.concat(getChildVertices(child))
                 })
             }
@@ -1543,16 +1596,16 @@ export class Model {
         return false
     }
 
-    addChild(child){
+    addChild(child) {
         if (!(child instanceof Model)) throw new Error('child must be a Model instance')
         child._parent = this
         if (!this._childs.includes(child)) this._childs.push(child)
         this.clearBoundsFull()
     }
 
-    removeChild(child){
+    removeChild(child) {
         child.destroy()
-        this._childs = this._childs.filter(one=> one!== child)
+        this._childs = this._childs.filter(one => one !== child)
         this.clearBoundsFull()
     }
 
@@ -1683,9 +1736,9 @@ export class Model {
     move(vDirection) {
         if (!vDirection) return
         this._position = this._position.add(vDirection)
-        if (this._boundsFull){
+        if (this._boundsFull) {
             this._boundsFull.position = this._boundsFull.position.add(vDirection)
-            this._childs.forEach(one=>one._boundsFull.position = one._boundsFull.position.add(vDirection))
+            this._childs.forEach(one => one._boundsFull.position = one._boundsFull.position.add(vDirection))
         }
     }
 
@@ -1701,10 +1754,12 @@ export class Model {
         const diff = val - this.position.x
         this.move(new Vector3(diff, 0, 0))
     }
+
     setPositionY(val) {
         const diff = val - this.position.y
         this.move(new Vector3(0, diff, 0))
     }
+
     setPositionZ(val) {
         const diff = val - this.position.z
         this.move(new Vector3(0, 0, diff))
@@ -1715,18 +1770,20 @@ export class Model {
         const diff = val - this.content.position.x
         this.moveContent(new Vector3(diff, 0, 0))
     }
+
     setContentPositionY(val) {
         if (!this.content || !this.content.position) return
         const diff = val - this.content.position.y
         this.moveContent(new Vector3(0, diff, 0))
     }
+
     setContentPositionZ(val) {
         if (!this.content || !this.content.position) return
         const diff = val - this.content.position.z
         this.moveContent(new Vector3(0, 0, diff))
     }
 
-    sizeX(x){
+    sizeX(x) {
         if (isNaN(+x)) return
         if (!(this._content instanceof OBB || this._content instanceof AABB)) return
         this._content.size = new Vector3(x, this._content.size.y, this._content.size.z)
@@ -1734,15 +1791,15 @@ export class Model {
         this.clearBoundsFull()
     }
 
-    sizeY(y){
+    sizeY(y) {
         if (isNaN(+y)) return
         if (!(this._content instanceof OBB || this._content instanceof AABB)) return
-        this._content.size = new Vector3(this._content.size.x, y,  this._content.size.z)
+        this._content.size = new Vector3(this._content.size.x, y, this._content.size.z)
         this._content.sizeNeedUpdate = true
         this.clearBoundsFull()
     }
 
-    sizeZ(z){
+    sizeZ(z) {
         if (isNaN(+z)) return
         if (!(this._content instanceof OBB || this._content instanceof AABB)) return
         this._content.size = new Vector3(this._content.size.x, this._content.size.y, z)
@@ -1758,7 +1815,6 @@ export class Model {
     rotate(vRotate) {
         if (!vRotate) return
         this._rotation = this._rotation.add(vRotate)
-        console.log('this._rotation', this._rotation);
         // Обнулим _boundsFull чтобы они посчитались при следующей необходимости заново
         this.clearBoundsFull()
     }
@@ -1787,7 +1843,18 @@ export class Model {
 }
 
 
-
+function getPrimitiveInstanceName(obj) {
+    if (obj instanceof Point3D) return 'Point3D'
+    if (obj instanceof Vector3) return 'Vector3'
+    if (obj instanceof Line) return 'Line'
+    if (obj instanceof Ray) return 'Ray'
+    if (obj instanceof Sphere) return 'Sphere'
+    if (obj instanceof OBB) return 'OBB'
+    if (obj instanceof AABB) return 'AABB'
+    if (obj instanceof Plane) return 'Plane'
+    if (obj instanceof Triangle) return 'Triangle'
+    return false
+}
 
 
 

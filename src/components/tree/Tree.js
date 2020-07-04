@@ -6,7 +6,7 @@
 
 import {Component} from '@core/Component'
 import {createTree} from '@/components/tree/tree.template'
-import {$} from '@core/dom'
+import {$} from '@core/jquery.extends'
 
 export class Tree extends Component {
     static className = 'app__tree'
@@ -41,15 +41,14 @@ export class Tree extends Component {
     toHTML() {
         const rootNode = this.project.model || []
         const selectedId = this.project.selectedModel? this.project.selectedModel.id : null
-        console.log('rootNode', rootNode);
         return createTree(rootNode, {selectedId})
     }
 
     onClick(e) {
 
         const $target = $(e.target)
-        if ($target.data.type !== 'tree-node') return
-        this.$emit('tree:selectModel', {value:$target.data.id})
+        if ($target.data('type') !== 'tree-node') return
+        this.$emit('tree:selectModel', {value:$target.data('id')})
 
 
     }
