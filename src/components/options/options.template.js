@@ -15,6 +15,10 @@ export function createOptions(data = {}, options = {}) {
 
     const model = data.model
 
+    const modelX = model? Math.round(model.boundsFull.size.x * 2 * 100) / 100 : 0
+    const modelY = model? Math.round(model.boundsFull.size.y * 2 * 100) / 100 : 0
+    const modelZ = model? Math.round(model.boundsFull.size.z * 2 * 100) / 100 : 0
+
     const blocks = {
         selected: {
             isSelected: !!data.model,
@@ -332,6 +336,11 @@ export function createOptions(data = {}, options = {}) {
                     <div class="flex">
                         <div class="label">Name:</div>
                         ${createItems(blocks.selected)}
+                    </div>
+                    <div class="flex">
+                        <div class="label">${modelX}</div>
+                        <div class="label">${modelY}</div>
+                        <div class="label">${modelZ}</div>
                     </div>
                      <div class="flex between">
                         ${createItems(blocks.selected.buttons)}
