@@ -1422,9 +1422,12 @@ export class Model {
         return this._boundsFull
     }
 
-    clearBoundsFull() {
+    clearBoundsFull(fromParent) {
+        if (!fromParent && this.parent){
+            return this.parent.clearBoundsFull()
+        }
         this._boundsFull = null
-        this._childs.forEach(one => one.clearBoundsFull())
+        this._childs.forEach(one => one.clearBoundsFull(true))
     }
 
     calcBounds() {
@@ -1506,6 +1509,14 @@ export class Model {
 
     get position() {
         return this._position
+    }
+
+    set position(vPosition) {
+        if (!(vPosition instanceof Vector3)) throw new Error('Value must be Vector3')
+        const diffX = vPosition.x !== null ? vPosition.x - this.position.x : 0
+        const diffY = vPosition.y !== null ? vPosition.y - this.position.y : 0
+        const diffZ = vPosition.z !== null ? vPosition.z - this.position.z : 0
+        this.move(new Vector3(diffX, diffY, diffZ))
     }
 
     // set positionX(val){
@@ -1740,6 +1751,7 @@ export class Model {
             this._boundsFull.position = this._boundsFull.position.add(vDirection)
             this._childs.forEach(one => one._boundsFull.position = one._boundsFull.position.add(vDirection))
         }
+        return this
     }
 
     moveContent(vDirection) {
