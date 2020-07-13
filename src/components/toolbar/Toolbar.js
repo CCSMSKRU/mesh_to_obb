@@ -38,6 +38,18 @@ export class Toolbar extends Component {
             this.render()
         })
 
+        this.$on('model:boundsChange', (e) => {
+            const model = e.model
+            const modelX = model? Math.round(model.boundsFull.size.x * 2 * 100) / 100 : 0
+            const modelY = model? Math.round(model.boundsFull.size.y * 2 * 100) / 100 : 0
+            const modelZ = model? Math.round(model.boundsFull.size.z * 2 * 100) / 100 : 0
+
+            this.$root.find('[data-id="boundsFullX"]').text(modelX)
+            this.$root.find('[data-id="boundsFullY"]').text(modelY)
+            this.$root.find('[data-id="boundsFullZ"]').text(modelZ)
+
+        })
+
     }
 
 
@@ -55,6 +67,11 @@ export class Toolbar extends Component {
                     <div class="label">Mesh:</div>
                     ${createItems(blocks.meshInput)}
                     ${createItems(blocks.meshBtns)}
+                </div>
+                <div class="toolbar__label">
+                    <div class="label" data-id="boundsFullX">0</div>
+                    <div class="label" data-id="boundsFullY">0</div>
+                    <div class="label" data-id="boundsFullZ">0</div>
                 </div>`
     }
 

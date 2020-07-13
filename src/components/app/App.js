@@ -118,6 +118,7 @@ export class App {
 
         this.$on('toolbar:uploadProject', (e) => {
             toastr.info('Method not implemented')
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
 
         this.$on('toolbar:downloadProject', (e) => {
@@ -133,6 +134,7 @@ export class App {
         this.$on('tree:selectModel', (e) => {
             this.project.selectModel(e.value)
             this.$emit('project:selectModel')
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
 
         this.$on('options:changeName', (e) => {
@@ -157,6 +159,7 @@ export class App {
         this.$on('options:addChild', (e) => {
             this.project.addChild()
             this.$emit('project:selectModel')
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
 
         this.$on('options:removeModel', (e) => {
@@ -176,55 +179,69 @@ export class App {
         // boxContainerPosition
         this.$on('options:boxContainerPosition_x', (e) => {
             this.project.moveXSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
         this.$on('options:boxContainerPosition_y', (e) => {
             this.project.moveYSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
         this.$on('options:boxContainerPosition_z', (e) => {
             this.project.moveZSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
 
         // boxContainerRotation
         this.$on('options:boxContainerRotation_x', (e) => {
             this.project.rotateXSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
         this.$on('options:boxContainerRotation_y', (e) => {
             this.project.rotateYSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
         this.$on('options:boxContainerRotation_z', (e) => {
             this.project.rotateZSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
 
         // boxPosition
         this.$on('options:boxPosition_x', (e) => {
             this.project.moveContentXSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
         this.$on('options:boxPosition_y', (e) => {
             this.project.moveContentYSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
         this.$on('options:boxPosition_z', (e) => {
             this.project.moveContentZSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
 
         // boxSize
         this.$on('options:boxSize_x', (e) => {
             this.project.sizeContentXSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
         this.$on('options:boxSize_y', (e) => {
             this.project.sizeContentYSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
         this.$on('options:boxSize_z', (e) => {
             this.project.sizeContentZSelected(e.value)
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
 
         this.$on('options:boxSize_autoY', (e) => {
             this.project.setSizeYByMash()
             this.$emit('project:updateModel')
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
 
         this.$on('options:boxSize_autoZ', (e) => {
             this.project.setSizeZByMash()
             this.$emit('project:updateModel')
+            this.$emit('model:boundsChange', {model:this.project.selectedModel})
         })
 
 
