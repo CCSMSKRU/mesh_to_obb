@@ -149,6 +149,23 @@ export class App {
             }
         })
 
+        this.$on('options:supportPlatformRamp_isSupport', (e) => {
+            if (this.project.model) {
+                this.project.model.isSupport = e.value
+            }
+        })
+        this.$on('options:supportPlatformRamp_isPlatform', (e) => {
+            if (this.project.model) {
+                this.project.model.isPlatform = e.value
+            }
+        })
+        this.$on('options:supportPlatformRamp_isRamp', (e) => {
+            if (this.project.model) {
+                this.project.model.isRamp = e.value
+            }
+        })
+
+
         this.$on('options:applyDefaultSteps', (e) => {
             this.project.options.model.defaultSteps = e.value
             if (this.project.model) {

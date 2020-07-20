@@ -5,7 +5,7 @@
  */
 
 
-import {createButton, createInput, createItems} from '@core/template.functions'
+import {createButton, createInput, createItems, createSwitch} from '@core/template.functions'
 import {v4} from 'uuid'
 
 export function createOptions(data = {}, options = {}) {
@@ -36,6 +36,43 @@ export function createOptions(data = {}, options = {}) {
                     func: createInput
                 },
             ],
+            isSupport: {
+                func: createSwitch,
+                options: {
+                    datas: [
+                        'data-type="option_switch"',
+                        'data-category="supportPlatformRamp"',
+                    ],
+                },
+                items: [
+                    {
+                        name: 'isSupport',
+                        title: 'isSupport',
+                        checked: model ? model.isSupport : ''
+                    }
+                ],
+            },
+            isPlatform: {
+                func: createSwitch,
+                options: {
+                    datas: [
+                        'data-type="option_switch"',
+                        'data-category="supportPlatformRamp"',
+                    ],
+                },
+                items: [
+                    {
+                        name: 'isPlatform',
+                        title: 'isPlatform',
+                        checked: model ? model.isPlatform : ''
+                    },
+                    {
+                        name: 'isRamp',
+                        title: 'isRamp',
+                        checked: model ? model.isRamp : ''
+                    },
+                ],
+            },
             buttons: {
                 func: createButton,
                 options: {
@@ -339,6 +376,13 @@ export function createOptions(data = {}, options = {}) {
                      <div class="flex between">
                         ${createItems(blocks.selected.buttons)}
                     </div>
+                    <div class="flex between">
+                        ${createItems(blocks.selected.isSupport)}
+                    </div>
+                    <div class="flex between">
+                        ${createItems(blocks.selected.isPlatform)}
+                    </div>
+                    
             </div>
             <div class="options__box main_control">
                 <h5>Main options</h5>

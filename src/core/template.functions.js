@@ -89,11 +89,20 @@ export function createSwitch(item = {}, options = {}) {
     const title = item.title || ''
     const width = item.width || options.width
     const datas = item.datas || options.datas || []
+    const attributes = item.attributes || []
     const checked = item.checked ? 'checked' : ''
 
 
-    return `<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="${id}" ${datas.join(' ')} data-name="${name}">
-              <input type="checkbox" id="${id}" class="mdl-switch__input" ${checked} ${datas.join(' ')} data-name="${name}">
+    return `<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" data-needUpgrade="1" for="${id}" ${datas.join(' ')} data-name="${name}">
+              <input 
+                type="checkbox" 
+                id="${id}"
+                data-name="${name}"
+                ${datas.join(' ')}
+                ${attributes.join(' ')}
+                class="mdl-switch__input" ${checked} ${datas.join(' ')} 
+                
+                >
               <span class="mdl-switch__label">${title}</span>
             </label>`
 }

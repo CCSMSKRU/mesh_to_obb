@@ -51,12 +51,20 @@
         &.between {
           justify-content: space-between;
         }
+
+
+
       }
 
       .label {
         text-decoration: underline;
         padding-right: 10px;
       }
+
+      & .mdl-switch {
+        margin: 10px 0 !important;
+      }
+
     }
 
   }

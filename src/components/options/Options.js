@@ -79,7 +79,7 @@ export class Options extends Component {
 
     onInput(e) {
         const $target = $(e.target)
-        if ($target.data('type') !== 'option_input') return
+        if ($target.data('type') !== 'option_input' && $target.data('type') !== 'option_switch') return
 
         if ($target.data('name') === 'option_opacity') return this.$emit('options:opacity',{value:+$target.val()})
 
@@ -92,7 +92,10 @@ export class Options extends Component {
             if ($target.data('name') === 'position') return this.defaultSteps.position = +$target.val()
             if ($target.data('name') === 'rotation') return this.defaultSteps.rotation = +$target.val()
         } else {
-            return this.$emit(`options:${$target.data('category')}_${$target.data('name')}`, {value:+$target.val()})
+            const val = ($target.data('type') === 'option_switch')
+                ? $target.val() === 'on'
+                : $target.val()
+            return this.$emit(`options:${$target.data('category')}_${$target.data('name')}`, {value:val})
         }
         // else if ($target.data('category') === 'boxContainerPosition') {
         //     if ($target.data('name') === 'x') return this.$emit('options:boxContainerPosition_x', {value:+$target.val()})
