@@ -15,3 +15,17 @@ export function loadMesh(){
         this.$emit('toolbar:loadMesh', {file})
     })
 }
+
+export function uploadJSONProject(){
+    const input = $.create('input').attr({
+        type:'file',
+        name:'JSONProject'
+    })
+    input.click()
+
+    const _t = this
+    input.on('change', e => {
+        var file = e.target.files[0]
+        this.$emit('toolbar:uploadJSONProject', {file})
+    })
+}

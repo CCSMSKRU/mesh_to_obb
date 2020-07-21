@@ -41,6 +41,33 @@ export class App {
             })
 
         })
+        this.$on('toolbar:uploadJSONProject', (e) => {
+
+            const file = e.file
+
+            let project
+
+            const _t = this
+            var reader = new FileReader()
+            reader.onload = () => {
+                console.log('RES', reader.result);
+                try {
+                    project = JSON.parse(reader.result)
+                } catch (e) {
+                    toastr.error('Invalid JSON')
+                    console.error('Invalid JSON', e, reader.result)
+                }
+
+                _t.loadProject(project)
+
+
+            }
+            reader.onerror = (error) => {
+                console.error('error while reading file', error)
+            }
+            reader.readAsText(file)
+
+        })
 
         this.$on('toolbar:removeMesh', (e) => {
             toastr.info('Method not implemented')
@@ -150,18 +177,18 @@ export class App {
         })
 
         this.$on('options:supportPlatformRamp_isSupport', (e) => {
-            if (this.project.model) {
-                this.project.model.isSupport = e.value
+            if (this.project.selectedModel) {
+                this.project.selectedModel.isSupport = e.value
             }
         })
         this.$on('options:supportPlatformRamp_isPlatform', (e) => {
-            if (this.project.model) {
-                this.project.model.isPlatform = e.value
+            if (this.project.selectedModel) {
+                this.project.selectedModel.isPlatform = e.value
             }
         })
         this.$on('options:supportPlatformRamp_isRamp', (e) => {
-            if (this.project.model) {
-                this.project.model.isRamp = e.value
+            if (this.project.selectedModel) {
+                this.project.selectedModel.isRamp = e.value
             }
         })
 

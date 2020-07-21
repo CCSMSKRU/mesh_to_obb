@@ -65,6 +65,23 @@ export class Project {
         })
     }
 
+    // loadJSONProject(file) {
+    //     return new Promise((res, rej) => {
+    //         this.meshFile = file
+    //
+    //         var reader = new FileReader()
+    //         reader.onload = () => {
+    //             this.meshUrl = reader.result
+    //             res(this.meshUrl)
+    //         }
+    //         reader.onerror = (error) => {
+    //             console.error('error while reading file', error)
+    //             rej(error)
+    //         }
+    //         reader.readAsDataURL(file)
+    //     })
+    // }
+
     loadMeshModel() {
 
         return loadThreeJSModel(this.meshUrl)

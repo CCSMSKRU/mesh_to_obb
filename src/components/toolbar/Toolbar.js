@@ -1,6 +1,6 @@
 import {Component} from '@core/Component'
 import {$} from '@core/jquery.extends'
-import {loadMesh} from '@/components/toolbar/toolbar.functions'
+import {loadMesh, uploadJSONProject} from '@/components/toolbar/toolbar.functions'
 import {createItems} from '@core/template.functions'
 import {getBlocks} from '@/components/toolbar/toolbar.blocks'
 import * as bootbox from 'bootbox'
@@ -40,9 +40,9 @@ export class Toolbar extends Component {
 
         this.$on('model:boundsChange', (e) => {
             const model = e.model
-            const modelX = model? Math.round(model.boundsFull.size.x * 2 * 100) / 100 : 0
-            const modelY = model? Math.round(model.boundsFull.size.y * 2 * 100) / 100 : 0
-            const modelZ = model? Math.round(model.boundsFull.size.z * 2 * 100) / 100 : 0
+            const modelX = model ? Math.round(model.boundsFull.size.x * 2 * 100) / 100 : 0
+            const modelY = model ? Math.round(model.boundsFull.size.y * 2 * 100) / 100 : 0
+            const modelZ = model ? Math.round(model.boundsFull.size.z * 2 * 100) / 100 : 0
 
             this.$root.find('[data-id="boundsFullX"]').text(modelX)
             this.$root.find('[data-id="boundsFullY"]').text(modelY)
@@ -80,6 +80,11 @@ export class Toolbar extends Component {
         if ($target.data('type') !== 'toolbar_button') return
 
         if ($target.data('category') === 'project') {
+
+            if ($target.data('name') === 'uploadProject') {
+                return uploadJSONProject.call(this, e)
+            }
+
             if ($target.data('name') === 'newProject') {
                 bootbox.confirm({
                     title: "New Project",
@@ -97,7 +102,8 @@ export class Toolbar extends Component {
             // if ($target.data('name') === 'downloadProject') this.$emit('toolbar:downloadProject')
             // if ($target.data('name') === 'uploadProject') this.$emit('toolbar:uploadProject')
         } else if ($target.data('category') === 'mesh') {
-            if ($target.data('name') === 'loadMesh') loadMesh.call(this, e)
+            if ($target.data('name') === 'loadMesh') return loadMesh.call(this, e)
+
             if ($target.data('name') === 'removeMesh') this.$emit('toolbar:removeMesh')
         }
 

@@ -50,7 +50,7 @@ export const getBlocks = (project, options) => {
             items:[
                 {
                     name: 'uploadProject',
-                    icon: 'unarchive',
+                    icon: 'attach_file',
                     hint:'Upload Project from JSON file'
                 },
                 {
