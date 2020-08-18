@@ -3,12 +3,12 @@
  * Ivan Goptarev
  * Copyright (c) 2020.
  */
+@import "variables";
 
 .modal-dialog {
   .attention {
     color: #F00;
   }
-
 
 
   .load-project-modal-container {
@@ -17,7 +17,73 @@
     max-height: 400px;
     overflow-y: auto;
 
-    .one-project-row{
+    .one-project-row {
+      display: flex;
+      justify-content: space-between;
+
+      border-bottom: 1px solid $border-color;
+      margin-bottom: 2px;
+
+
+      .name {
+        padding-top: 12px;
+      }
+    }
+
+  }
+
+  .load-project-states-container {
+    padding: 10px 0;
+
+    max-height: 400px;
+    overflow-y: auto;
+
+    .new-state-container {
+      display: block;
+      padding: 7px 10px;
+      width: 100%;
+      font-size: 0.8rem;
+      //overflow-y: auto;
+
+      input {
+        font-size: 0.8rem;
+        margin-right: 5px;
+      }
+
+      .flex {
+        display: flex;
+        //justify-content: space-between;
+        align-items: center;
+
+        &.between {
+          justify-content: space-between;
+        }
+
+        //.options__box {
+        //  width: 100%;
+        //  padding: 0 0 10px 0;
+        //  border-bottom: 1px solid $border-color;
+        //
+        //
+        //
+        //
+        //
+        //  }
+
+        .label {
+          text-decoration: underline;
+          padding-right: 10px;
+        }
+
+        & .mdl-switch {
+          margin: 10px 0 !important;
+        }
+
+      }
+
+    }
+
+    .one-state-row {
       display: flex;
       justify-content: space-between;
 

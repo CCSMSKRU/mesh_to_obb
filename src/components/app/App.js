@@ -11,7 +11,8 @@ import {Model} from '@core/physicEngine/geometry/Geometry3D'
 import {download} from '@core/utils'
 import * as bootbox from 'bootbox'
 import * as toastr from 'toastr'
-import {populateProjects} from '@/components/app/app.functions'
+import {populateProjects, populateStates} from '@/components/app/app.functions'
+import {manageStateInit} from '@/components/app/app.states'
 
 export class App {
     constructor(selector, options) {
@@ -130,6 +131,7 @@ export class App {
                     title: `Remove Project "${$this.data('name')} (${id})"`,
                     message: '<div class="attention">Are you sure?</div>',
                     callback: (res) => {
+                        if (!res) return
                         const err = _t.removeProject(id)
                         if (!err) $this.parent('.one-project-row').remove()
                         toastr.success('Project successful deleted')
@@ -151,6 +153,9 @@ export class App {
         this.$on('toolbar:downloadProject', (e) => {
             this.downloadProject()
         })
+
+
+        manageStateInit.call(this)
 
 
         this.$on('header:changeProjectName', (e) => {
@@ -212,6 +217,7 @@ export class App {
                 title: `Remove model`,
                 message: '<div class="attention">All child models will be deleted. Are you sure?</div>',
                 callback: (res) => {
+                    if (!res) return
                     const err = this.project.removeModel()
                     if (err) toastr.error(err.message)
                     this.$emit('project:selectModel')

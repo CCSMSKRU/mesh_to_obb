@@ -90,9 +90,6 @@ export class ObjectPosition extends PhysicObject {
                     const closest = platform.box.closestPoint(pointCorrected)
                     const line = new Line(pointCorrected, closest)
                     const ln = line.length()
-                    // if (ln === 20){
-                    //     debugger;
-                    // }
                     if (line.length() >= 30) {
                         isOnCurrent = false
                         break;

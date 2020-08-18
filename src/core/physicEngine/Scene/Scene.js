@@ -16,21 +16,24 @@ export class Scene {
     }
 
     addModel(model) {
+        if (!model) return
         if (!this._objects.includes(model)) this._objects.push(model)
-        model.childs.forEach(one=>this.addModel(one))
+        model.childs.forEach(one => this.addModel(one))
     }
 
     removeModel(model) {
-        model.childs.forEach(one=>this.removeModel(one))
+        if (!model) return
+        model.childs.forEach(one => this.removeModel(one))
         this._objects = this._objects.filter(one => one !== model)
     }
 
     clear() {
-        this._objects.forEach(obj=>this.removeModel(obj))
+        this._objects.forEach(obj => this.removeModel(obj))
         this.cleared = true
     }
 
     updateModel(model) {
+        if (!model) return
         this.removeModel(model)
         this.addModel(model)
     }
@@ -51,7 +54,7 @@ export class Scene {
     }
 
     raycast(ray) {
-        if (this.octree){
+        if (this.octree) {
             return this.octree.raycast(ray)
         }
 
@@ -73,7 +76,7 @@ export class Scene {
     }
 
     query(primitiv, objects_) {
-        if (this.octree){
+        if (this.octree) {
             return this.octree.query(primitiv)
         }
 
@@ -87,13 +90,13 @@ export class Scene {
         })
     }
 
-    accelerate(position, size = 0){
+    accelerate(position, size = 0) {
         if (!this.octree) return false
         const min = new Vector3(position.x - size, position.y - size, position.z - size)
         const max = new Vector3(position.x + size, position.y + size, position.z + size)
         const octree = new OctreeNode()
         octree.bounds = AABB.fromMinMax(min, max)
-        this._objects.forEach(oneObj =>{
+        this._objects.forEach(oneObj => {
             octree.models.push(oneObj)
         })
         splitTree(octree, 5)
@@ -104,7 +107,7 @@ export class Scene {
 
         // Здесь сперва можно делать query исключать себя и своих детей и делать сравнение только с остальными объектами попавшими в query
         const qAABB = new AABB(model.boundsFull.position, model.boundsFull.size.add(this.querySizeVec))
-        const objects = this.query(qAABB, this._objects.filter(one=>one.topModelId !== model.id))
+        const objects = this.query(qAABB, this._objects.filter(one => one.topModelId !== model.id))
 
         // const objects = this._objects.filter(one=>one.topModelId !== model.id)
 
@@ -113,18 +116,136 @@ export class Scene {
 
             if (!collisions) continue
 
-            console.log(collisions, object);
+            // console.log(collisions, object);
 
             return {
-                self:model,
-                target:object,
+                self: model,
+                target: object,
                 collisions
             }
         }
     }
 
-}
+    moveAndCheck(technicalModel, platformModel, options = {}) {
+        const startOnObject = technicalModel.checkOn(platformModel)
+        let lastSuccess = options.lastSuccess
+        const step = options.stepX || 100
 
+        // return false
+        // Двигаем по X
+        // const step =
+        technicalModel.move(new Vector3(step, 0, 0))
+
+        const onObject = technicalModel.checkOn(platformModel)
+
+        // Столкновение с препядствием по X или сход с платформы
+        const collisionX = this.checkCollision(technicalModel) || (startOnObject && !onObject)
+        if (collisionX) {
+            // Если наткнулись на рампу, будем подниматься
+
+            if (collisionX.target.isRamp && !options.moveByZ) {
+                technicalModel.move(new Vector3(-step, 50, 0))
+                return this.moveAndCheck(technicalModel, platformModel, {...options, lastSuccess})
+            }
+
+            // if (startOnObject && !onObject)
+            if (!onObject) {
+                // Иначе это провал (если нет LastSuccess)
+                if (lastSuccess) {
+                    technicalModel.moveTo(...lastSuccess.position.asArray)
+                    return options.moveByZ
+                        ? false
+                        : this.moveAndCheck(technicalModel, platformModel, {...options, lastSuccess, moveByZ: true})
+                    // return false
+                }
+                // console.warn('Временно ставим return false');
+                // return false
+                return collisionX
+            }
+
+            //
+            // technicalModel.move(new Vector3(-step, 0, 0))
+            // return false
+
+
+            // Иначе отменяем перемещение по X и начинаем двигаться по Z
+            technicalModel.move(new Vector3(-step, 0, 100))
+            // Столкновение с препядствием по Z или сход с платформы
+            const collisionZ = this.checkCollision(technicalModel) || (startOnObject && !technicalModel.checkOn(platformModel))
+            if (collisionZ) {
+
+                // Отменяем движение по Z
+                technicalModel.move(new Vector3(0, 0, -100))
+                // и если до этого мы были на платформе, то это успех
+                if (startOnObject) return false
+
+                // Иначе это провал (если нет LastSuccess)
+                if (lastSuccess) {
+                    technicalModel.moveTo(...lastSuccess.position.asArray)
+                    return false
+                }
+                return collisionZ
+            }
+            // Успешно переместились по Z будем снова пробовать по X
+            return this.moveAndCheck(technicalModel, platformModel, {...options, lastSuccess})
+        }
+
+        // Возможно мы каким то образом вообще промазали мимо платформы.
+        // Если пройденное расстояние уже достаточно большое - завершим цикл
+        if (technicalModel.position.x > 30000) {
+
+
+            if (lastSuccess) {
+                technicalModel.moveTo(...lastSuccess.position.asArray)
+                return false
+            }
+            // console.warn('Временно ставим return false');
+            // return false
+            return new MyError('Miss', {pos: technicalModel.position, posPlatform: platformModel.position})
+        }
+
+        // Если же все ок, то сохраним успешную позицию и попробуем еще дальше сдвинуться по X
+        if (technicalModel.checkOn(platformModel)) {
+            lastSuccess = {
+                position: new Vector3(...technicalModel.position.asArray),
+                rotation: new Vector3(...technicalModel.rotation.asArray)
+            }
+            // console.log('lastSuccess', lastSuccess);
+        }
+
+
+        return this.moveAndCheck(technicalModel, platformModel, {...options, lastSuccess})
+    }
+
+    placeOn(technicalModel, platformModel) {
+
+        // Ставим перед машиной
+        technicalModel.moveTo(
+            platformModel.boundsFull.position.x - (platformModel.boundsFull.size.x) - (technicalModel.boundsFull.size.x) - 2000,
+            null,
+            platformModel.boundsFull.position.z - platformModel.boundsFull.size.z + technicalModel.boundsFull.size.z
+        )
+
+
+        // Move X, check, if collision unmove and move Y. while collisionX && collisionY && onPlatform. Then restore last success
+        const oldPosition = new Vector3(
+            technicalModel.position.x,
+            technicalModel.position.y,
+            technicalModel.position.z
+        )
+        const collision = this.moveAndCheck(technicalModel, platformModel)
+
+        if (collision) {
+            technicalModel.moveTo(oldPosition)
+            return collision
+        }
+
+        return collision
+        // return false
+    }
+
+
+}
 
 
 class OctreeNode {
@@ -199,16 +320,16 @@ class OctreeNode {
     query(primitiv) {
 
         let results = []
-        if (primitiv.aabbIn(this.bounds)){
+        if (primitiv.aabbIn(this.bounds)) {
             if (!this.children) {
-                results =  this.models.filter(model => {
+                results = this.models.filter(model => {
                     const bounds = model.getOBB()
                     return (primitiv.obbIn(bounds))
                 })
             } else {
-                this.children.forEach(child =>{
+                this.children.forEach(child => {
                     const childs = child.query(primitiv)
-                    if (childs.length){
+                    if (childs.length) {
                         results = [...results, ...childs]
                     }
                 })

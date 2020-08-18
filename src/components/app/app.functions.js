@@ -27,3 +27,5 @@ export const populateProjects = (projects = [])=>{
                 </div>`
     }).join('')
 }
+
+

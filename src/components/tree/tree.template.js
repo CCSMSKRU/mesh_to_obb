@@ -6,22 +6,21 @@
 
 import {v4} from 'uuid'
 
-function createNode(node = {}, options = {}){
+function createNode(node = {}, options = {}) {
     const nodeId = node.id || v4()
     const text = node.text || node.name || '-'
 
     const childs = options.childsKey || 'childs'
     const selected = (options.selectedId && nodeId === options.selectedId) || node.selected
-    console.log(options, selected);
 
-    return `<div class="tree-node${selected? ' selected' : ''}" data-type="tree-node" data-id="${nodeId}">
-                <div class="label${selected? ' selected' : ''}" data-type="tree-node" data-id="${nodeId}">${text}</div>
+    return `<div class="tree-node${selected ? ' selected' : ''}" data-type="tree-node" data-id="${nodeId}">
+                <div class="label${selected ? ' selected' : ''}" data-type="tree-node" data-id="${nodeId}">${text}</div>
                 ${node[childs] && node[childs].length
-                    ? `<div class="tree-childs" data-type="tree-childs">
-                            ${node[childs].map(one=>createNode(one, options)).join('')}
-                        </div>` 
-                    : ``
-                }
+        ? `<div class="tree-childs" data-type="tree-childs">
+                            ${node[childs].map(one => createNode(one, options)).join('')}
+                        </div>`
+        : ``
+        }
             </div>`
 }
 

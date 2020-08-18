@@ -1,6 +1,6 @@
 import {Component} from '@core/Component'
 import {$} from '@core/jquery.extends'
-import {loadMesh, uploadJSONProject} from '@/components/toolbar/toolbar.functions'
+import {loadMesh, manageStates, uploadJSONProject} from '@/components/toolbar/toolbar.functions'
 import {createItems} from '@core/template.functions'
 import {getBlocks} from '@/components/toolbar/toolbar.blocks'
 import * as bootbox from 'bootbox'
@@ -72,7 +72,14 @@ export class Toolbar extends Component {
                     <div class="label" data-id="boundsFullX">0</div>
                     <div class="label" data-id="boundsFullY">0</div>
                     <div class="label" data-id="boundsFullZ">0</div>
-                </div>`
+                </div>
+                <div class="toolbar__label">
+                    <div class="label">STATE:</div>
+                    <div class="stateName">${this.project.selected_state ? this.project.selected_state.name : 'Original'}</div>
+                    
+                    ${createItems(blocks.state)}
+                </div>
+`
     }
 
     onClick(e) {
@@ -90,6 +97,7 @@ export class Toolbar extends Component {
                     title: "New Project",
                     message: "All unsaved data will be lost. Are you sure?",
                     callback: (res) => {
+                        if (!res) return
                         if (res) this.$emit('toolbar:newProject')
                     }
                 })
@@ -105,6 +113,8 @@ export class Toolbar extends Component {
             if ($target.data('name') === 'loadMesh') return loadMesh.call(this, e)
 
             if ($target.data('name') === 'removeMesh') this.$emit('toolbar:removeMesh')
+        } else if ($target.data('category') === 'state') {
+            this.$emit(`toolbar:${$target.data('name')}`)
         }
 
     }

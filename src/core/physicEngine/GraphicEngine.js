@@ -333,7 +333,8 @@ export class GraphicEngine {
         this.renderer3D = new THREE.WebGLRenderer({antialias: true})
         //renderer.shadowMapEnabled = true;
         this.renderer3D.setSize(this.options3D.width, this.options3D.height)
-        this.renderer3D.setClearColor(0xA7B0C4, 1)
+        const clearColor = typeof this.options3D.clearColor !== 'undefined'? this.options3D.clearColor : 0xA7B0C4
+        this.renderer3D.setClearColor(clearColor, 1)
         const $renderer3D = $(this.renderer3D.domElement)
         $renderer3D
             .addClass('div3D')
@@ -347,8 +348,8 @@ export class GraphicEngine {
 
         // this.angle = 0
         if (this.options3D.axesHelper){
-            var axesHelper = new THREE.AxesHelper( 50000 );
-            this.scene3D.add( axesHelper );
+            var axesHelper = new THREE.AxesHelper(50000)
+            this.scene3D.add(axesHelper)
         }
 
         const light = new THREE.SpotLight()
@@ -487,7 +488,6 @@ export class GraphicEngine {
 
         const zeroPos = new Vector3(0, this.optionsXY.height, 0).subtract(
             new Vector3(0, 0, 0)
-
         ).add(this.offset)
         this.contextXY.beginPath()
         this.contextXY.arc(zeroPos.x, zeroPos.y, 2, 0, 2 * Math.PI)
@@ -528,9 +528,9 @@ export class GraphicEngine {
         this.contextXY.closePath()
 
 
-        this.contextXY.font = "12px Arial";
-        this.contextXY.fillText("Y", 10, 22);
-        this.contextXY.fillText("X", this.optionsXY.width - 22, this.optionsXY.height - 10);
+        this.contextXY.font = "12px Arial"
+        this.contextXY.fillText("Y", 10, 22)
+        this.contextXY.fillText("X", this.optionsXY.width - 22, this.optionsXY.height - 10)
 
     }
 
@@ -604,9 +604,9 @@ export class GraphicEngine {
         this.contextXZ.closePath()
 
 
-        this.contextXZ.font = "12px Arial";
-        this.contextXZ.fillText("Z", 10, 22);
-        this.contextXZ.fillText("X", this.optionsXY.width - 22, this.optionsXY.height - 10);
+        this.contextXZ.font = "12px Arial"
+        this.contextXZ.fillText("Z", 10, 22)
+        this.contextXZ.fillText("X", this.optionsXY.width - 22, this.optionsXY.height - 10)
 
         // const boxSize = physicObjectPos.size.multiply(this.scale)
         // const boxPos = physicObjectPos.position
@@ -686,13 +686,13 @@ export class GraphicEngine {
 
         this.scene3D.add(cube)
 
-        var axesHelper = new THREE.AxesHelper( 50000 );
-        this.scene3D.add( axesHelper );
+        var axesHelper = new THREE.AxesHelper(50000)
+        this.scene3D.add(axesHelper)
     }
 
     addModelTo3D(model, topModel = {}) {
         if (model.type === 'OBJ'){
-            var loader = new OBJLoader();
+            var loader = new OBJLoader()
             const scene = this.scene3D
             // load a resource
             loader.load(
@@ -702,23 +702,23 @@ export class GraphicEngine {
                 function ( object ) {
 
                     scene.add(object)
-                    console.log('Three object', object);
+                    console.log('Three object', object)
                     // scene.add( object );
 
                 },
                 // called when loading is in progresses
                 function ( xhr ) {
 
-                    console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded')
 
                 },
                 // called when loading has errors
                 function ( error ) {
 
-                    console.log( 'An error happened', error);
+                    console.log('An error happened', error)
 
                 }
-            );
+            )
 
             return
         }
@@ -742,7 +742,8 @@ export class GraphicEngine {
         const material = new THREE.MeshPhongMaterial({
             color: graphicOptions.materialColor || '#0F0',
             opacity:typeof graphicOptions.opacity !== 'undefined'? graphicOptions.opacity : 1,
-            transparent:graphicOptions.transparent
+            // transparent:graphicOptions.transparent
+            transparent: !(typeof graphicOptions.opacity !== 'undefined' && graphicOptions.opacity === 1)
         })
         const cube = new THREE.Mesh(geometry, material)
         cube.name = model.id
@@ -755,24 +756,55 @@ export class GraphicEngine {
             const boundsFullPos = box.position //.multiply(this.inverseMultiplyVec3D)
             const boundsFullGeometry = new THREE.BoxGeometry(boundsFullSize.x * 2, boundsFullSize.y * 2, boundsFullSize.z * 2)
 
-            const boundsFullMaterial = new THREE.MeshPhongMaterial({color: model.childs.length? '#cdffcb' : '#ffa2a5', opacity:model.childs.length? 0.2 : 0.5, transparent: true,})
+            const boundsFullMaterial = new THREE.MeshPhongMaterial({
+                color: model.childs.length ? '#cdffcb' : '#ffa2a5',
+                opacity: model.childs.length ? 0.2 : 0.5,
+                transparent: true,
+            })
             const boundsFullBox = new THREE.Mesh(boundsFullGeometry, boundsFullMaterial)
             boundsFullBox.name = model.id + '_boundsFull'
             boundsFullBox.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
             this.scene3D.add(boundsFullBox)
         }
 
+        if (this.options3D.drawSupports) {
+            const supportsGroups = model.supportGroupsAll
+            if (supportsGroups.length) {
+                supportsGroups.forEach(group => {
+                    group.items.forEach((point, index) => {
+                        const geometry = new THREE.SphereGeometry(50, 32, 32)
+                        const material = new THREE.MeshBasicMaterial({color: 0xff0000})
+                        const sphere = new THREE.Mesh(geometry, material)
+                        sphere.name = model.id + '_supportPoint' + index
+                        sphere.name = `${model.id}_supportPoint_${group.name}_${index}`
+                        sphere.position.set(point.x, point.y, point.z)
+                        this.scene3D.add(sphere)
+                    })
+
+                })
+            }
+            // const boundsFullSize = model.boundsFull.size //.multiply(this.scale)
+            // const boundsFullPos = box.position //.multiply(this.inverseMultiplyVec3D)
+            // const boundsFullGeometry = new THREE.BoxGeometry(boundsFullSize.x * 2, boundsFullSize.y * 2, boundsFullSize.z * 2)
+            //
+            // const boundsFullMaterial = new THREE.MeshPhongMaterial({color: model.childs.length? '#cdffcb' : '#ffa2a5', opacity:model.childs.length? 0.2 : 0.5, transparent: true,})
+            // const boundsFullBox = new THREE.Mesh(boundsFullGeometry, boundsFullMaterial)
+            // boundsFullBox.name = model.id + '_boundsFull'
+            // boundsFullBox.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
+            // this.scene3D.add(boundsFullBox)
     }
+
+    }
+
     renderScene3D(scene) {
 
 
-
         const cameraPosition = this.options3D.cameraPosition
-            ? [this.options3D.cameraPosition.x, this.options3D.cameraPosition,y, this.options3D.cameraPosition.z]
+            ? [this.options3D.cameraPosition.x, this.options3D.cameraPosition.y, this.options3D.cameraPosition.z]
             : [10000, 10000, 40000]
         this.camera3D.position.set(...cameraPosition)
         const cameraTarget = this.options3D.cameraTarget
-            ? [this.options3D.cameraTarget.x, this.options3D.cameraTarget,y, this.options3D.cameraTarget.z]
+            ? [this.options3D.cameraTarget.x, this.options3D.cameraTarget.y, this.options3D.cameraTarget.z]
             : [0, 0, 0]
         this.controls3D.target = new THREE.Vector3(...cameraTarget)
         this.controls3D.update()
@@ -833,12 +865,7 @@ export class GraphicEngine {
             }
             model.graphicOptions.updated = true
         }
-        // opacity:typeof graphicOptions.opacity !== 'undefined'? graphicOptions.opacity : 1,
-        //     transparent:graphicOptions.transparent
 
-        // cube.material.color = new THREE.Color(graphicOptions.materialColor)
-        // cube.material.opacity = graphicOptions.transparent
-        // cube.material.opacity = graphicOptions.opacity
 
         const box1 = model.getOBB()
         const oma = box1.orientation.inverse()
@@ -853,7 +880,7 @@ export class GraphicEngine {
         m1.set(...m4t.asArray)
         cube.setRotationFromMatrix(m1)
 
-        cube.updateMatrix();
+        cube.updateMatrix()
         let boxPos = m4t.getTranslation()
 
 
@@ -903,6 +930,19 @@ export class GraphicEngine {
             }
         }
 
+        if (this.options3D.drawSupports) {
+            const supportsGroups = model.supportGroupsAll
+            if (supportsGroups.length) {
+                supportsGroups.forEach(group => {
+                    group.items.forEach((point, index) => {
+                        const sphere = this.scene3D.getObjectByName(`${model.id}_supportPoint_${group.name}_${index}`)
+                        if (sphere) sphere.position.set(point.x, point.y, point.z)
+                    })
+
+                })
+            }
+        }
+
         if (graphicOptions.drawCenters){
             const centersLine = this.scene3D.getObjectByName(model.id + '_centersLine')
             if (centersLine) {
@@ -920,20 +960,20 @@ export class GraphicEngine {
                     }
 
                 }
-                centersLine.geometry.attributes.position.needsUpdate = needUpdate;
+                centersLine.geometry.attributes.position.needsUpdate = needUpdate
             } else {
                 const centersLineMaterial = new THREE.LineBasicMaterial({
                     color: 0xffff00
-                });
+                })
 
-                const points = [];
-                points.push( new THREE.Vector3( model.position.x, model.position.y, model.position.z) );
+                const points = []
+                points.push(new THREE.Vector3(model.position.x, model.position.y, model.position.z))
                 // points.push( new THREE.Vector3( boxPos.x, boxPos.y, boxPos.z ) )
                 points.push( new THREE.Vector3( model.content.position.x, model.content.position.y, model.content.position.z ) )
 
-                const centersLineGeometry = new THREE.BufferGeometry().setFromPoints( points );
+                const centersLineGeometry = new THREE.BufferGeometry().setFromPoints(points)
 
-                const centersLine = new THREE.Line( centersLineGeometry, centersLineMaterial );
+                const centersLine = new THREE.Line(centersLineGeometry, centersLineMaterial)
 
                 centersLine.name = model.id + '_centersLine'
                 this.scene3D.add(centersLine)

@@ -1,4 +1,5 @@
 import {$} from '@core/jquery.extends'
+import * as bootbox from 'bootbox'
 // import * as THREE from '~/three/build/three.module.js';
 // import * as THREE from 'three/build/three.module';
 
@@ -29,3 +30,4 @@ export function uploadJSONProject(){
         this.$emit('toolbar:uploadJSONProject', {file})
     })
 }
+

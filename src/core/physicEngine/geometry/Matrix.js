@@ -7,12 +7,10 @@ export class Matrix {
         this._rowCount = rowCount;
         this._colCount = colCount;
         // this.asArray = [];
-        // if (rowCount !== colCount) debugger;
 
         for (let i = 0; i < this._rowCount * this._colCount; i++) {
             const row = Math.floor(i / this._colCount);
             const col = i % this._colCount;
-            // debugger;
 
             var elem = (elems.length) ? elems.shift() : (()=>{
                 return (row === col)? 1 : 0;
@@ -76,9 +74,6 @@ export class Matrix {
     }
     get asArray(){
         var arr = [];
-        // if (this._rowCount < 3){
-        //     debugger;
-        // }
 
         for (let i = 0; i < this._rowCount; i++) {
             arr = [...arr, ...this[i]];

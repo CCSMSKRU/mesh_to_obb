@@ -4,6 +4,7 @@ import {Matrix3} from '@core/physicEngine/geometry/Matrix3'
 import {Matrix4} from '@core/physicEngine/geometry/Matrix4'
 import {v1 as uuidv1} from 'uuid'
 import * as THREE from 'three'
+import MyError from '@core/error'
 
 export class Geometry3D {
     constructor(props) {
@@ -1284,7 +1285,7 @@ export class BVHNode {
 export class Model {
     static fromOBJ(obj = {}) {
         let content, pos, size, orientation
-        if (obj.content && obj.content.instanceName){
+        if (obj.content && obj.content.instanceName) {
             switch (obj.content.instanceName) {
                 case 'AABB':
                     pos = new Vector3(obj.content.position._x, obj.content.position._y, obj.content.position._z)
@@ -1298,15 +1299,25 @@ export class Model {
                     content = new OBB(pos, size, orientation)
                     break
                 default:
-                    console.warn('Method has not implementation for this instanceName', obj.content.instanceName, obj.content);
+                    console.warn('Method has not implementation for this instanceName', obj.content.instanceName, obj.content)
                     break
             }
         }
-        const position = obj.position? new Vector3(obj.position._x, obj.position._y, obj.position._z) : null
-        const rotation = obj.rotation? new Vector3(obj.rotation._x, obj.rotation._y, obj.rotation._z) : null
+        const position = obj.position ? new Vector3(obj.position._x, obj.position._y, obj.position._z) : null
+        const rotation = obj.rotation ? new Vector3(obj.rotation._x, obj.rotation._y, obj.rotation._z) : null
+
+        if (obj.states && Array.isArray(obj.states)) {
+            obj.states.map(state => {
+                const obj = {...state}
+                if (state.position) obj.position = new Vector3(...state.position.asArray)
+                if (state.rotation) obj.rotation = new Vector3(...state.rotation.asArray)
+                return obj
+            })
+        }
+
         const model = new Model({...obj, content, position, rotation})
 
-        if (obj.childs && Array.isArray(obj.childs)){
+        if (obj.childs && Array.isArray(obj.childs)) {
             obj.childs.forEach(child => {
                 model.addChild(Model.fromOBJ(child))
             })
@@ -1316,6 +1327,7 @@ export class Model {
     }
 
     constructor(obj = {}) {
+
         this.id = uuidv1()
         this.name = obj.name || 'unnamed'
 
@@ -1325,6 +1337,7 @@ export class Model {
         this._bounds = null // AABB
         this._boundsFull = null // AABB (with childs)
         this.type = obj.type || ''
+        this.states = obj.states || []
 
 
         this._position = obj.position || new Vector3()
@@ -1341,8 +1354,50 @@ export class Model {
             if (typeof this[key] === 'undefined') this[key] = obj[key]
         })
 
+        this.isSupport = obj.isSupport // Опорный box
+
+        this.supportGroups = this.isSupport
+            ? obj.supportGroups
+            || (() => {
+                const size = this.content && this.content.size ? this.content.size : this.bounds.size
+
+                const supportOffset = obj.supportOffset || 100
+                const supportOffsetX = obj.supportOffsetX || supportOffset || 100
+                const supportOffsetZ = obj.supportOffsetZ || supportOffset || 100
+
+                return [
+                    {
+                        name: 'MAIN',
+                        modelId: this.id,
+                        items: [
+                            new Point3D(size.x - supportOffsetX, -size.y, size.z - supportOffsetZ),
+                            new Point3D(size.x - supportOffsetX, -size.y, -size.z + supportOffsetZ),
+                            new Point3D(-size.x + supportOffsetX, -size.y, -size.z + supportOffsetZ),
+                            new Point3D(-size.x + supportOffsetX, -size.y, size.z - supportOffsetZ)
+                        ]
+                    },
+
+                ]
+            })()
+            : null
+
+        this.isPlatform = obj.isPlatform // On this plane can be placed transport (another objects)
+        this.isRamp = obj.isRamp // On this plane transport can move up
+
+        this.saveOrigState()
 
     }
+
+    saveOrigState(fromTop) {
+        // if (!fromTop && !this.isTop()) {
+        //     this.getTopModel().saveOrigState(true)
+        //     return
+        // }
+        this.position_orig = new Vector3(...this._position.asArray)
+        this.rotation_orig = new Vector3(...this._rotation.asArray)
+        // this.childs.forEach(one => one.saveOrigState(true))
+    }
+
 
     destroy() {
         this._parent = null
@@ -1359,9 +1414,9 @@ export class Model {
         const res = {
             content: this.content && getPrimitiveInstanceName(this.content) ? this.content : null,
             childs: this.childs.map(child => child.getForStore()),
-            position:this.position,
-            rotation:this.rotation,
-            graphicOptions:this.graphicOptions,
+            position: this.position,
+            rotation: this.rotation,
+            graphicOptions: this.graphicOptions,
         }
         if (res.content) res.content.instanceName = getPrimitiveInstanceName(res.content)
         Object.keys(this).forEach(key => {
@@ -1378,6 +1433,14 @@ export class Model {
 
     get topModelId() {
         return this.parent ? this.parent.topModelId : this.id
+    }
+
+    getTopModel() {
+        return this.parent ? this.parent.getTopModel : this
+    }
+
+    isTop() {
+        return !this.parent
     }
 
     get bounds() {
@@ -1422,12 +1485,48 @@ export class Model {
         return this._boundsFull
     }
 
+    getAllStates(fromParent) {
+        if (!fromParent && this.parent) {
+            return this.parent.getAllStates()
+        }
+        return [...this.states, ...this._childs.map(one => one.getAllStates(true))]
+    }
+
+    get selectedState() {
+        if (typeof this._selectedState !== 'undefined') return this._selectedState
+        this._selectedState = this.getTopModel()._selectedState
+        return this._selectedState
+    }
+
+    clearSelectedState(fromParent) {
+        if (!fromParent && this.parent) {
+            return this.parent.clearSelectedState()
+        }
+        this._selectedState = undefined
+        this._childs.forEach(one => one.clearSelectedState(true))
+    }
+
+    set selectedState(state) {
+        this.clearSelectedState()
+        this.getTopModel()._selectedState = state
+    }
+
     clearBoundsFull(fromParent) {
-        if (!fromParent && this.parent){
+        if (!fromParent && this.parent) {
             return this.parent.clearBoundsFull()
         }
         this._boundsFull = null
+        this.updatePosition()
         this._childs.forEach(one => one.clearBoundsFull(true))
+    }
+
+    updatePosition(vDirection) {
+        this._supportGroupsAll = null
+        this._platforms = null
+        if (vDirection && this._boundsFull) {
+            this._boundsFull.position = this._boundsFull.position.add(vDirection)
+        }
+        this._childs.forEach(one => one.updatePosition(vDirection))
     }
 
     calcBounds() {
@@ -1449,46 +1548,40 @@ export class Model {
 
         this.bounds = this.calcBounds()
         // return
+    }
 
+    get supportGroupsAll() {
+        if (this._supportGroupsAll) return this._supportGroupsAll
 
-        // let min = new Vector3()
-        // let max = new Vector3()
-        //
-        // if (this.type === 'THREEJS_OBJ'){
-        //     // this._content.children.forEach(child=>{
-        //     //
-        //     // })
-        //     // if (!this._content.geometry.boundingBox) this._content.geometry.computeBoundingBox()
-        //     // const boundingBox = this._content.geometry.boundingBox
-        //     // min = new Vector3(boundingBox.min.x, boundingBox.min.y, boundingBox.min.z)
-        //     // max = new Vector3(boundingBox.max.x, boundingBox.max.y, boundingBox.max.z)
-        // }else {
-        //     min = this._content.getMin()
-        //     max = this._content.getMax()
-        // }
-        //
-        //
-        // // if (this._boundsFull) this._boundsFull = null
-        //
-        // // if (this._content instanceof OBB) {
-        // //     // this.bounds = this._content.getBounds()
-        // //     // return
-        // // } else if (this._content instanceof Mesh) {
-        // //     min = this._content.vertices[0]
-        // //     max = this._content.vertices[0]
-        // //
-        // //     for (let i in this._content.vertices) {
-        // //         min.x = Math.min(this._content.vertices[i].x, min.x)
-        // //         min.y = Math.min(this._content.vertices[i].y, min.y)
-        // //         min.z = Math.min(this._content.vertices[i].z, min.z)
-        // //         max.x = Math.max(this._content.vertices[i].x, max.x)
-        // //         max.y = Math.max(this._content.vertices[i].y, max.y)
-        // //         max.z = Math.max(this._content.vertices[i].z, max.z)
-        // //     }
-        // // }
-        //
-        // this.bounds = AABB.fromMinMax(min, max)
-        // // console.log(min, max, this.bounds);
+        // const groups = []
+
+        const world = this.getWorldMatrix()
+        const groups = this.supportGroups
+            ? this.supportGroups.map(one => {
+                return {
+                    ...one,
+                    items: one.items.map(point => world.multiplyPoint(point))
+                }
+            })
+            : []
+        this.childs.forEach(child => {
+            groups.push(...child.supportGroupsAll)
+        })
+        this._supportGroupsAll = groups
+
+        return this._supportGroupsAll
+    }
+
+    get platforms() {
+        if (this._platforms) return this._platforms
+        this._platforms = this.isPlatform
+            ? [this.getOBB()]
+            : []
+        this.childs.forEach(child => {
+            this._platforms.push(...child.platforms)
+        })
+
+        return this._platforms
     }
 
     get rotation() {
@@ -1513,10 +1606,19 @@ export class Model {
 
     set position(vPosition) {
         if (!(vPosition instanceof Vector3)) throw new Error('Value must be Vector3')
-        const diffX = vPosition.x !== null ? vPosition.x - this.position.x : 0
-        const diffY = vPosition.y !== null ? vPosition.y - this.position.y : 0
-        const diffZ = vPosition.z !== null ? vPosition.z - this.position.z : 0
+        const diffX = vPosition.x - this.position.x
+        const diffY = vPosition.y - this.position.y
+        const diffZ = vPosition.z - this.position.z
         this.move(new Vector3(diffX, diffY, diffZ))
+    }
+
+    get absolutePosition() {
+        let world = this.getWorldMatrix()
+        // const inv = world.inverse()
+        // const position = world.multiplyPoint(new Vector3(...this.position.asArray))
+        const position = world.getTranslation()
+        // if (this.parent) return position.add(this.parent.absolutePosition)
+        return position
     }
 
     // set positionX(val){
@@ -1644,14 +1746,78 @@ export class Model {
         return new OBB(position, size, orientation)
     };
 
-    get absolutePosition() {
-        let world = this.getWorldMatrix()
-        // const inv = world.inverse()
-        // const position = world.multiplyPoint(new Vector3(...this.position.asArray))
-        const position = world.getTranslation()
-        // if (this.parent) return position.add(this.parent.absolutePosition)
-        return position
-    };
+    addState(name, sysname, editMode) {
+        const exist = this.states.filter(one => one.sysname === sysname)[0]
+        if (exist) return exist
+        const state = {
+            name: name || 'Unnamed',
+            sysname,
+            editMode
+        }
+        this.states.push(state)
+
+        if (this.parent) {
+            // Добавим стейт верхней модели
+            const topModel = this.getTopModel()
+            const topModelState = topModel.states.filter(one => one.sysname === sysname)[0]
+            if (!topModelState) topModel.addState(state.name, state.sysname, state.editMode)
+        }
+
+        return state
+    }
+
+    removeState(sysname, fromParent) {
+        if (!fromParent && this.parent) {
+            return this.parent.saveToSelectedState()
+        }
+        if (!fromParent && this.selectedState && this.selectedState.sysname === sysname) this.toState()
+        this.states = this.states.filter(one => one.sysname !== sysname)
+        this._childs.forEach(one => one.removeState(sysname, true))
+    }
+
+    saveToSelectedState(fromParent) {
+        if (!fromParent && this.parent) {
+            return this.parent.saveToSelectedState()
+        }
+
+        if (!this.selectedState) return
+
+        const changes = []
+
+        if (this.position_orig && !this.position.equal(this.position_orig)) changes.push({position: new Vector3(...this.position.asArray)})
+        if (this.rotation_orig && !this.rotation.equal(this.rotation_orig)) changes.push({rotation: new Vector3(...this.rotation.asArray)})
+
+        if (changes.length) {
+            const state =
+                this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
+                || this.addState(this.selectedState.name, this.selectedState.sysname, this.selectedState.editMode)
+            changes.forEach(key => state[key] = changes[key])
+        }
+
+        this._childs.forEach(one => one.saveToSelectedState(true))
+    }
+
+    toState(sysname, fromParent) {
+        if (!fromParent && this.parent) {
+            return this.parent.toState(sysname)
+        }
+
+        this._childs.forEach(one => one.toState(sysname))
+
+        if (this._childs.length) return
+        // const state = this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
+        let state_obj = this.states.filter(one => one.sysname === sysname.sysname)[0] || {}
+
+        this.position = state_obj.position || this.position_orig || this._position
+        this.rotation = state_obj.rotation || this.rotation_orig || this._rotation
+
+        this.selectedState = this.getTopModel().states.filter(one => one.sysname === sysname)[0] || null
+
+    }
+
+    toFinishState() {
+        this.toState('FINISH')
+    }
 
     raycast(ray) {
         const world = this.getWorldMatrix()
@@ -1744,14 +1910,115 @@ export class Model {
         return false
     };
 
+    checkOn(platformModel) {
+        if (!this.supportGroupsAll.length) throw new MyError('Model must has isSupport flag', this)
+        // Все точки у всех опорных блоков должны быть вблизи от поверхности isPlatform
+
+
+        // Union by group.name
+        const groups = {}
+        this.supportGroupsAll.forEach(group => {
+            if (!groups[group.name]) groups[group.name] = {...group, items: []}
+            groups[group.name].items.push(...group.items)
+        })
+
+        let isOnOne = false
+        Object.keys(groups).forEach(key => {
+            const support = groups[key]
+
+            if (isOnOne) return
+
+            let isOnCurrent
+            for (const platform of platformModel.platforms) {
+                isOnCurrent = true
+                for (const point of support.items) {
+                    // const pointCorrected = point.add(support.position).add(support.offset)
+                    // const closest = platform.box.closestPoint(pointCorrected)
+                    // const line = new Line(pointCorrected, closest)
+
+                    const closest = platform.closestPoint(point)
+                    const line = new Line(point, closest)
+
+                    // const ln = line.length()
+                    // console.log(line);
+                    if (line.length() >= 60) {
+                        isOnCurrent = false
+                        break
+                    }
+                }
+                if (isOnCurrent) {
+                    break
+                }
+            }
+            isOnOne = isOnCurrent
+        })
+
+        return isOnOne
+
+
+        // let isOnOne
+        // this.supports.forEach(support=>{
+        //     if (isOnOne) return
+        //
+        //     let isOnCurrent;
+        //     for (const platform of platformModel.platforms) {
+        //         isOnCurrent = true
+        //         for (const point of support.contactItems) {
+        //             const pointCorrected = point.add(support.position).add(support.offset)
+        //             const closest = platform.box.closestPoint(pointCorrected)
+        //             const line = new Line(pointCorrected, closest)
+        //             const ln = line.length()
+        //             if (line.length() >= 30) {
+        //                 isOnCurrent = false
+        //                 break;
+        //             }
+        //         }
+        //         if (isOnCurrent) {
+        //             break;
+        //         }
+        //     }
+        //     isOnOne = isOnCurrent
+        //     // platformObjectPos.platforms.forEach(platform=>{
+        //     //     const isNear = support.contactItems.map(point=>{
+        //     //         const pointCorrected = point.add(support.position).add(support.offset)
+        //     //         const closest = platform.box.closestPoint(pointCorrected)
+        //     //         const line = new Line(pointCorrected, closest)
+        //     //         return (line.length() < 30)
+        //     //     })
+        //     //
+        //     // })
+        // })
+        // return isOnOne
+    }
+
+    /**
+     * add vector to current position. All children will be moved too
+     * @param vDirection
+     * @returns {*}
+     */
     move(vDirection) {
         if (!vDirection) return
         this._position = this._position.add(vDirection)
-        if (this._boundsFull) {
-            this._boundsFull.position = this._boundsFull.position.add(vDirection)
-            this._childs.forEach(one => one._boundsFull.position = one._boundsFull.position.add(vDirection))
-        }
+        // this.clearBoundsFull(true)
+        // if (this._boundsFull) {
+        //     this._boundsFull.position = this._boundsFull.position.add(vDirection)
+        //     this._childs.forEach(one => one._boundsFull.position = one._boundsFull.position.add(vDirection))
+        // }
+        this.updatePosition(vDirection)
         return this
+    }
+
+    /**
+     * if one of the components is null, it will not be changed
+     * @param x
+     * @param y
+     * @param z
+     */
+    moveTo(x = null, y = null, z = null) {
+        const diffX = x !== null ? x - this.position.x : null
+        const diffY = y !== null ? y - this.position.y : null
+        const diffZ = z !== null ? z - this.position.z : null
+        this.move(new Vector3(diffX, diffY, diffZ))
     }
 
     moveContent(vDirection) {
@@ -1851,6 +2118,12 @@ export class Model {
         this.graphicOptions.needUpdate = true
         if (childs) this.childs.forEach(one => one.setGraphicOption(key, val, childs))
     }
+
+    setField(key, val, childs) {
+        this[key] = val
+        if (childs) this.childs.forEach(one => one.setField(key, val, childs))
+    }
+
 
 }
 

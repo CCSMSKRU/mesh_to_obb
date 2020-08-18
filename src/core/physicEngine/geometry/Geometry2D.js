@@ -46,7 +46,6 @@ export class Geometry2D {
             let t = circle.position.subtract(line.start).dot(ab) / ab.dot(ab)
             // const t = Dot(c.position - l.start, ab) / Dot(ab, ab);
             // if (t < 0 || t > 1) {
-            //     debugger;
             //     return false;
             // }
             t = Math.max(t, 0) // Clamp to 0
