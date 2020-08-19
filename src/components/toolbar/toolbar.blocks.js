@@ -100,26 +100,6 @@ export const getBlocks = (project, options) => {
                 },
             ]
         },
-        state:{
-            func: createButton,
-            options: {
-                datas: [
-                    'data-type="toolbar_button"',
-                    'data-category="state"',
-                ],
-            },
-            items:[
-                {
-                    name: 'manageStates',
-                    icon: 'settings',
-                    hint: 'Select or remove State'
-                },
-                {
-                    name: 'addState',
-                    icon: 'add',
-                    hint: 'Create new state'
-                },
-            ]
-        },
+
     }
 }

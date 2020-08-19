@@ -26,8 +26,8 @@ export class RenderContainer extends Component {
             this.pEngine.stopRenderScene3D()
             this.project.scene = this.pEngine.createScene()
             this.pEngine.clear3DScene()
-            console.log('this.project.scene',this.project.scene.objects);
-            console.log('this.pEngine.scene3D',this.pEngine.scene3D.children);
+            // console.log('this.project.scene',this.project.scene.objects);
+            // console.log('this.pEngine.scene3D',this.pEngine.scene3D.children);
 
             this.pEngine.renderScene3D(this.project.scene)
         })

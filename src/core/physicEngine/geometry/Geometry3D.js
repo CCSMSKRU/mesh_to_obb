@@ -1303,14 +1303,25 @@ export class Model {
                     break
             }
         }
-        const position = obj.position ? new Vector3(obj.position._x, obj.position._y, obj.position._z) : null
-        const rotation = obj.rotation ? new Vector3(obj.rotation._x, obj.rotation._y, obj.rotation._z) : null
+
+        const position_ = obj.position_orig || obj.position
+        const position = position_ ? new Vector3(position_._x, position_._y, position_._z) : null
+
+
+        let rotation_ = obj.rotation_orig || obj.rotation
+        const rotation = rotation_ ? new Vector3(rotation_._x, rotation_._y, rotation_._z) : null
 
         if (obj.states && Array.isArray(obj.states)) {
             obj.states.map(state => {
                 const obj = {...state}
-                if (state.position) obj.position = new Vector3(...state.position.asArray)
-                if (state.rotation) obj.rotation = new Vector3(...state.rotation.asArray)
+                if (state.position) {
+                    state.position = new Vector3(state.position._x, state.position._y, state.position._z)
+                    obj.position = new Vector3(...state.position.asArray)
+                }
+                if (state.rotation) {
+                    state.rotation = new Vector3(state.rotation._x, state.rotation._y, state.rotation._z)
+                    obj.rotation = new Vector3(...state.rotation.asArray)
+                }
                 return obj
             })
         }
@@ -1388,14 +1399,12 @@ export class Model {
 
     }
 
-    saveOrigState(fromTop) {
-        // if (!fromTop && !this.isTop()) {
-        //     this.getTopModel().saveOrigState(true)
-        //     return
-        // }
+    saveOrigState() {
+        if (this._rotation._z === 30){
+            debugger;
+        }
         this.position_orig = new Vector3(...this._position.asArray)
         this.rotation_orig = new Vector3(...this._rotation.asArray)
-        // this.childs.forEach(one => one.saveOrigState(true))
     }
 
 
@@ -1416,6 +1425,9 @@ export class Model {
             childs: this.childs.map(child => child.getForStore()),
             position: this.position,
             rotation: this.rotation,
+            position_orig: this.position_orig,
+            rotation_orig: this.rotation_orig,
+            states: this.states,
             graphicOptions: this.graphicOptions,
         }
         if (res.content) res.content.instanceName = getPrimitiveInstanceName(res.content)
@@ -1436,7 +1448,7 @@ export class Model {
     }
 
     getTopModel() {
-        return this.parent ? this.parent.getTopModel : this
+        return this.parent ? this.parent.getTopModel() : this
     }
 
     isTop() {
@@ -1489,7 +1501,11 @@ export class Model {
         if (!fromParent && this.parent) {
             return this.parent.getAllStates()
         }
-        return [...this.states, ...this._childs.map(one => one.getAllStates(true))]
+        return [...this.states, ...this._childs.map(one => one.getAllStates(true)).flat()]
+    }
+
+    getTopStates() {
+        return this.getTopModel().states
     }
 
     get selectedState() {
@@ -1525,6 +1541,10 @@ export class Model {
         this._platforms = null
         if (vDirection && this._boundsFull) {
             this._boundsFull.position = this._boundsFull.position.add(vDirection)
+        }
+        if (!this.isInToStateProcess){
+            if (this.selectedState && this.selectedState.editMode) this.saveToSelectedState()
+            else if (!this.selectedState) this.saveOrigState()
         }
         this._childs.forEach(one => one.updatePosition(vDirection))
     }
@@ -1598,6 +1618,10 @@ export class Model {
         this._rotation = vRotation
         // Обнулим _boundsFull чтобы они посчитались при следующей необходимости заново
         this.clearBoundsFull()
+        if (!this.isInToStateProcess){
+            if (this.selectedState && this.selectedState.editMode) this.saveToSelectedState()
+            else if (!this.selectedState) this.saveOrigState()
+        }
     }
 
     get position() {
@@ -1746,13 +1770,12 @@ export class Model {
         return new OBB(position, size, orientation)
     };
 
-    addState(name, sysname, editMode) {
+    addState(name, sysname) {
         const exist = this.states.filter(one => one.sysname === sysname)[0]
         if (exist) return exist
         const state = {
             name: name || 'Unnamed',
-            sysname,
-            editMode
+            sysname
         }
         this.states.push(state)
 
@@ -1760,7 +1783,7 @@ export class Model {
             // Добавим стейт верхней модели
             const topModel = this.getTopModel()
             const topModelState = topModel.states.filter(one => one.sysname === sysname)[0]
-            if (!topModelState) topModel.addState(state.name, state.sysname, state.editMode)
+            if (!topModelState) topModel.addState(state.name, state.sysname)
         }
 
         return state
@@ -1782,16 +1805,16 @@ export class Model {
 
         if (!this.selectedState) return
 
-        const changes = []
+        const changes = {}
 
-        if (this.position_orig && !this.position.equal(this.position_orig)) changes.push({position: new Vector3(...this.position.asArray)})
-        if (this.rotation_orig && !this.rotation.equal(this.rotation_orig)) changes.push({rotation: new Vector3(...this.rotation.asArray)})
+        if (this.position_orig && !this.position.equal(this.position_orig)) changes['position'] = new Vector3(...this.position.asArray)
+        if (this.rotation_orig && !this.rotation.equal(this.rotation_orig)) changes['rotation'] = new Vector3(...this.rotation.asArray)
 
-        if (changes.length) {
+        if (Object.keys(changes).length) {
             const state =
                 this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
-                || this.addState(this.selectedState.name, this.selectedState.sysname, this.selectedState.editMode)
-            changes.forEach(key => state[key] = changes[key])
+                || this.addState(this.selectedState.name, this.selectedState.sysname)
+            Object.keys(changes).forEach(key => state[key] = changes[key])
         }
 
         this._childs.forEach(one => one.saveToSelectedState(true))
@@ -1802,16 +1825,25 @@ export class Model {
             return this.parent.toState(sysname)
         }
 
-        this._childs.forEach(one => one.toState(sysname))
+        // Установим флаг, что сейчас идет переход в определенное состояние
+        this.isInToStateProcess = true
 
-        if (this._childs.length) return
-        // const state = this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
-        let state_obj = this.states.filter(one => one.sysname === sysname.sysname)[0] || {}
+        if (!this.parent) {
+            // Установим новый state
+            this.selectedState = this.getTopModel().states.filter(one => one.sysname === sysname)[0] || null
+        }
+        // Обновим значения моделей
 
+        this._childs.forEach(one => one.toState(sysname, true))
+
+        let state_obj = this.states.filter(one => one.sysname === sysname)[0] || {}
         this.position = state_obj.position || this.position_orig || this._position
         this.rotation = state_obj.rotation || this.rotation_orig || this._rotation
 
-        this.selectedState = this.getTopModel().states.filter(one => one.sysname === sysname)[0] || null
+        // Снимем флаг, что сейчас идет переход в определенное состояние
+        this.isInToStateProcess = false
+
+
 
     }
 
@@ -2005,6 +2037,7 @@ export class Model {
         //     this._childs.forEach(one => one._boundsFull.position = one._boundsFull.position.add(vDirection))
         // }
         this.updatePosition(vDirection)
+
         return this
     }
 
@@ -2096,6 +2129,10 @@ export class Model {
         this._rotation = this._rotation.add(vRotate)
         // Обнулим _boundsFull чтобы они посчитались при следующей необходимости заново
         this.clearBoundsFull()
+        if (!this.isInToStateProcess){
+            if (this.selectedState && this.selectedState.editMode) this.saveToSelectedState()
+            else if (!this.selectedState) this.saveOrigState()
+        }
     }
 
     rotateX(val) {

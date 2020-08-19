@@ -120,6 +120,7 @@ export class App {
                 if (project){
                     b1.modal('hide')
                     _t.loadProject(project)
+
                 }
             })
 
@@ -148,6 +149,7 @@ export class App {
         this.$on('toolbar:uploadProject', (e) => {
             toastr.info('Method not implemented')
             this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:selectState')
         })
 
         this.$on('toolbar:downloadProject', (e) => {
@@ -295,6 +297,8 @@ export class App {
         })
 
 
+        console.log('this.project', this.project)
+
     }
 
     $on(event, fn) {
@@ -418,6 +422,7 @@ export class App {
         this.project.destroy()
         this.project = project
         this.$emit('project:loadProject')
+        this.$emit('model:selectState')
 
         let model
         if (projObj.model) {

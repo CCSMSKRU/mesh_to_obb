@@ -39,16 +39,21 @@
     overflow-y: auto;
 
     .new-state-container {
-      display: block;
+      //display: block;
       padding: 7px 10px;
       width: 100%;
       font-size: 0.8rem;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
       //overflow-y: auto;
 
-      input {
-        font-size: 0.8rem;
-        margin-right: 5px;
-      }
+      //input {
+      //  font-size: 0.8rem;
+      //  margin-right: 5px;
+      //}
 
       .flex {
         display: flex;

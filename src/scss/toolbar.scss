@@ -24,6 +24,15 @@
   .toolbar__label {
     display: flex;
     border-right: 1px solid $border-color;
+
+    &.state-selected{
+      background-color: #f00;
+      color:#FFF
+    }
+
+    .material-icons{
+      margin-top: -3px;
+    }
   }
 
   .label {

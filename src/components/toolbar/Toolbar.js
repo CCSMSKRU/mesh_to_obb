@@ -1,6 +1,6 @@
 import {Component} from '@core/Component'
 import {$} from '@core/jquery.extends'
-import {loadMesh, manageStates, uploadJSONProject} from '@/components/toolbar/toolbar.functions'
+import {generateStateBlock, loadMesh, manageStates, uploadJSONProject} from '@/components/toolbar/toolbar.functions'
 import {createItems} from '@core/template.functions'
 import {getBlocks} from '@/components/toolbar/toolbar.blocks'
 import * as bootbox from 'bootbox'
@@ -50,11 +50,26 @@ export class Toolbar extends Component {
 
         })
 
+        this.$on('model:selectState', (e) => {
+            // const state = e.state
+            //
+            // const name = state? state.name : 'No state'
+            //
+            // this.$root.find('[data-id="stateName"]').text(name)
+
+            console.log('this', this)
+
+            this.$root.find('[data-id="stateBlock"]').replaceWith(generateStateBlock.call(this))
+
+        })
+
     }
 
 
     toHTML(options = {}) {
         const blocks = getBlocks(this.project, options)
+
+        console.log('this', this)
 
         return `<div class="toolbar__label">
                     <div class="label">Project:</div>
@@ -73,12 +88,7 @@ export class Toolbar extends Component {
                     <div class="label" data-id="boundsFullY">0</div>
                     <div class="label" data-id="boundsFullZ">0</div>
                 </div>
-                <div class="toolbar__label">
-                    <div class="label">STATE:</div>
-                    <div class="stateName">${this.project.selected_state ? this.project.selected_state.name : 'Original'}</div>
-                    
-                    ${createItems(blocks.state)}
-                </div>
+                ${generateStateBlock.call(this)}
 `
     }
 

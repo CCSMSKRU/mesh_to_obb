@@ -22,25 +22,25 @@ export class Options extends Component {
         this.defaultSteps = {}
     }
 
-    init(){
+    init() {
         super.init()
 
-        this.$on('project:selectModel', (e)=>{
+        this.$on('project:selectModel', (e) => {
             this.render()
         })
 
-        this.$on('project:updateModel', (e)=>{
+        this.$on('project:updateModel', (e) => {
             this.render()
         })
     }
 
-    render(){
+    render() {
         super.render()
         const els = [...this.$root.find('*[data-needUpgrade]')]
-        els.forEach(one=>{
+        els.forEach(one => {
             // console.log(one, one.$el);
             // componentHandler.upgradeElement(one.$el);
-            componentHandler.upgradeElement(one);
+            componentHandler.upgradeElement(one)
         })
         // componentHandler.upgradeElement(el);
     }
@@ -54,7 +54,7 @@ export class Options extends Component {
         this.defaultSteps = this.project.options.model.defaultSteps || {}
         const options = {
             opacity: this.project.options.model.opacity,
-            defaultSteps:this.defaultSteps
+            defaultSteps: this.defaultSteps
         }
         return createOptions(data, options)
 
@@ -66,11 +66,11 @@ export class Options extends Component {
         if ($target.data('type') !== 'option_button') return
 
         // work with selected model
-        if ($target.data('category') === 'selected'){
+        if ($target.data('category') === 'selected') {
             if ($target.data('name') === 'remove') this.$emit('options:removeModel')
             if ($target.data('name') === 'addChild') this.$emit('options:addChild')
         } else if ($target.data('category') === 'defaultSteps') {
-            if ($target.data('name') === 'apply') return this.$emit('options:applyDefaultSteps', {value:this.defaultSteps})
+            if ($target.data('name') === 'apply') return this.$emit('options:applyDefaultSteps', {value: this.defaultSteps})
         } else if ($target.data('category') === 'boxSize') {
             return this.$emit(`options:boxSize_${$target.data('name')}`)
         }
@@ -81,11 +81,11 @@ export class Options extends Component {
         const $target = $(e.target)
         if ($target.data('type') !== 'option_input' && $target.data('type') !== 'option_switch') return
 
-        if ($target.data('name') === 'option_opacity') return this.$emit('options:opacity',{value:+$target.val()})
+        if ($target.data('name') === 'option_opacity') return this.$emit('options:opacity', {value: +$target.val()})
 
         // work with selected model
-        if ($target.data('category') === 'selected'){
-            if ($target.data('name') === 'name') return this.$emit('options:changeName',{value:$target.val()})
+        if ($target.data('category') === 'selected') {
+            if ($target.data('name') === 'name') return this.$emit('options:changeName', {value: $target.val()})
             if ($target.data('name') === 'addChild') return this.$emit('options:addChild')
         } else if ($target.data('category') === 'defaultSteps') {
             if ($target.data('name') === 'size') return this.defaultSteps.size = +$target.val()
@@ -95,7 +95,7 @@ export class Options extends Component {
             const val = ($target.data('type') === 'option_switch')
                 ? $target.val() === 'on'
                 : $target.val()
-            return this.$emit(`options:${$target.data('category')}_${$target.data('name')}`, {value:val})
+            return this.$emit(`options:${$target.data('category')}_${$target.data('name')}`, {value: val})
         }
         // else if ($target.data('category') === 'boxContainerPosition') {
         //     if ($target.data('name') === 'x') return this.$emit('options:boxContainerPosition_x', {value:+$target.val()})

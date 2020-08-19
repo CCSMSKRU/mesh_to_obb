@@ -17,18 +17,18 @@ const populateStates = (projects = []) => {
                     class="one-state-row"
                     data-type="state-row-select"
                     data-name="${one.name}"
-                    data-id="${one.id}"
+                    data-id="${one.sysname}"
                 >
-                    <div class="name">${one.name} (${one.id})</div>
+                    <div class="name">${one.name} (${one.sysname})</div>
                     <button 
                         class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored" 
                         data-type="state-row-remove-btn"
                         data-name="${one.name}"
-                        data-id="${one.id}"
+                        data-id="${one.sysname}"
                       >
                       <i class="material-icons"
                         data-name="${one.name}"
-                        data-id="${one.id}"
+                        data-id="${one.sysname}"
                       >delete</i>
                     </button>
                 </div>`
@@ -38,17 +38,12 @@ const populateStates = (projects = []) => {
 export function manageStateInit() {
     this.$on('toolbar:manageStates', (e) => {
 
-        let projects
-        try {
-            projects = JSON.parse(localStorage.getItem('projects'))
-        } catch (e) {
-            toastr.error('Error while parsing localStorage "projects". You can clear LocalStorage manually')
-            console.error('Error while parsing localStorage "projects"', e, localStorage.getItem('projects'))
-            return
-        }
+        // const states = this.project && this.project.model? this.project.model.getAllStates() : []
+        const states = this.project && this.project.model? this.project.model.states : []
+        console.log('states', states)
+        console.log('model', this.project.model)
 
-        if (!projects.length) return toastr.info('No saved projects')
-
+        const _t = this
 
         const newStateObj = {
             options: {
@@ -64,14 +59,14 @@ export function manageStateInit() {
                     name: 'name',
                     title: 'Name',
                     value: '',
-                    width: 150,
+                    width: 180,
                     func: createInput
                 },
                 {
                     name: 'sysname',
                     title: 'Sysname',
                     value: '',
-                    width: 150,
+                    width: 180,
                     func: createInput
                 },
                 {
@@ -93,37 +88,128 @@ export function manageStateInit() {
                             ${createItems(newStateObj)}
                         </div>
                         <h5>States:</h5>
-                        ${populateStates(projects)}
+                        <div class="states-container">
+                            ${states.length? populateStates(states) : '<div>No states created</div>'}
+                        </div>
                     </div>
                 `
 
-        const b1 = bootbox.alert({
+        const b1 = bootbox.dialog({
             title: "Manage states",
-            message: html
-        })
-        const _t = this
-        b1.find('[data-type="state-row-select"]').off('click').on('click', function(e) {
-            const $this = $(this)
-            const id = $this.data('id')
-            const project = projects.filter(one => one.id === id)[0]
-            if (project) {
-                b1.modal('hide')
-                _t.loadProject(project)
+            message: html,
+            buttons:{
+
+                toMain: {
+                    label: 'Unselect state',
+                    callback: ()=> {
+                        _t.project.model.toState()
+                        _t.$emit('model:selectState', {})
+                        _t.$emit('project:updateModel')
+                        toastr.success('STATE UNSELECTED!')
+                        b1.modal('hide')
+                    }
+                },
+                close: {
+                    label: 'Close',
+                    callback: ()=>{}
+                },
             }
         })
 
-        b1.find('button[data-type="project-row-remove-btn"]').off('click').on('click', function(e) {
+        // Применим стили Material Design
+        const els = [...b1.find('*[data-needUpgrade]')]
+        els.forEach(one => componentHandler.upgradeElement(one))
+
+
+
+
+
+        b1.find('[data-type="newState_input"]').off('input').on('input', function(e) {
             e.stopPropagation()
             const $this = $(this)
-            const id = $this.data('id')
+
+            if ($this.data('name') === 'name'){
+                const $container = $this.parents('.new-state-container')
+
+                const sysname = $this.val().toUpperCase().replace(/\s/ig, '_')
+
+                const $sysname = $container.find('#newStateObj_sysname')
+
+                $sysname.val(sysname)
+
+                if (sysname) $sysname.parent().addClass('is-dirty')
+                else $sysname.parent().removeClass('is-dirty')
+                // $sysname[0].MaterialTextfield.checkDirty()
+
+            }
+        })
+
+        b1.find('[data-type="newState_button"]').off('click').on('click', function(e) {
+            e.stopPropagation()
+            if (!_t.project || !_t.project.model) toastr.error('No model')
+
+            const $this = $(this)
+
+            if ($this.data('name') === 'add'){
+                const $container = $this.parents('.new-state-container')
+
+                const $name = $container.find('#newStateObj_name')
+                const name = $name.val()
+
+                const $sysname = $container.find('#newStateObj_sysname')
+                const sysname = $sysname.val()
+
+                if (!name) return toastr.info('Name is empty')
+                if (!sysname) return toastr.info('Sysname is empty')
+
+                // addState
+                _t.project.model.addState(name, sysname)
+                b1.modal('hide')
+                _t.$emit('toolbar:manageStates')
+
+            }
+
+            // const id = $this.data('id')
+            // const project = projects.filter(one => one.id === id)[0]
+            // if (project) {
+            //     b1.modal('hide')
+            //     _t.loadProject(project)
+            // }
+        })
+
+
+        b1.find('[data-type="state-row-select"]').off('click').on('click', function(e) {
+            const $this = $(this)
+            const sysname = $this.data('id')
+            _t.project.model.toState(sysname)
+            _t.project.model.selectedState.editMode = true
+            _t.$emit('model:selectState', {state:_t.project.model.selectedState})
+            _t.$emit('project:updateModel')
+
+            toastr.success('STATE SELECTED!')
+            b1.modal('hide')
+            // const project = projects.filter(one => one.id === id)[0]
+            // if (project) {
+            //     b1.modal('hide')
+            //     _t.loadProject(project)
+            // }
+        })
+
+
+
+        b1.find('button[data-type="state-row-remove-btn"]').off('click').on('click', function(e) {
+            e.stopPropagation()
+            const $this = $(this)
+            const sysname = $this.data('id')
             bootbox.confirm({
-                title: `Remove Project "${$this.data('name')} (${id})"`,
+                title: `Remove STATE "${$this.data('name')} (${sysname})"`,
                 message: '<div class="attention">Are you sure?</div>',
                 callback: (res) => {
                     if (!res) return
-                    const err = _t.removeProject(id)
-                    if (!err) $this.parent('.one-project-row').remove()
-                    toastr.success('Project successful deleted')
+                    const err = _t.project.model.removeState(sysname)
+                    if (!err) $this.parent('.one-state-row').remove()
+                    _t.$emit('project:updateModel')
+                    toastr.success('STATE successful removed')
                 }
             })
         })
