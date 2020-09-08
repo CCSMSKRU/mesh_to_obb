@@ -11,7 +11,7 @@ import {Model} from '@core/physicEngine/geometry/Geometry3D'
 import {download} from '@core/utils'
 import * as bootbox from 'bootbox'
 import * as toastr from 'toastr'
-import {populateProjects, populateStates} from '@/components/app/app.functions'
+import {populateProjects, populateStates, readFromJSONFile} from '@/components/app/app.functions'
 import {manageStateInit} from '@/components/app/app.states'
 
 export class App {
@@ -42,31 +42,44 @@ export class App {
             })
 
         })
-        this.$on('toolbar:uploadJSONProject', (e) => {
+        this.$on('toolbar:uploadJSONProject', async (e) => {
+            // let project
+            // const _t = this
 
+            // If json passed :
+            let jsonText = e.json
+            // If file passed :
             const file = e.file
+            let jsonObj
 
-            let project
 
-            const _t = this
-            var reader = new FileReader()
-            reader.onload = () => {
-                console.log('RES', reader.result);
+            if (jsonText) {
                 try {
-                    project = JSON.parse(reader.result)
+                    jsonObj = JSON.parse(jsonText)
                 } catch (e) {
                     toastr.error('Invalid JSON')
-                    console.error('Invalid JSON', e, reader.result)
+                    console.error('Invalid JSON', e, jsonText)
                 }
 
-                _t.loadProject(project)
+            } else if (file) {
 
 
+                try {
+                    jsonObj = await readFromJSONFile(file)
+                } catch (e) {
+                    console.error(e)
+                    return
+                }
             }
-            reader.onerror = (error) => {
-                console.error('error while reading file', error)
+            if (!jsonObj) return
+
+            if (Array.isArray(jsonObj)) {
+                jsonObj.forEach(one => {
+                    this.loadProjectFromObj(one, true)
+                })
+            } else {
+                this.loadProjectFromObj(jsonObj, true)
             }
-            reader.readAsText(file)
 
         })
 
@@ -98,8 +111,6 @@ export class App {
             // }
 
 
-
-
             const html = `
                     <div class="attention">All unsaved data will be lost. Save current project before!</div>
                     <div class="load-project-modal-container">
@@ -116,15 +127,15 @@ export class App {
             b1.find('[data-type="project-row-select"]').off('click').on('click', function(e) {
                 const $this = $(this)
                 const id = $this.data('id')
-                const project = projects.filter(one=>one.id === id)[0]
-                if (project){
+                const project = projects.filter(one => one.id === id)[0]
+                if (project) {
                     b1.modal('hide')
                     _t.loadProject(project)
 
                 }
             })
 
-            b1.find('button[data-type="project-row-remove-btn"]').off('click').on('click', function(e){
+            b1.find('button[data-type="project-row-remove-btn"]').off('click').on('click', function(e) {
                 e.stopPropagation()
                 const $this = $(this)
                 const id = $this.data('id')
@@ -148,7 +159,7 @@ export class App {
 
         this.$on('toolbar:uploadProject', (e) => {
             toastr.info('Method not implemented')
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
             this.$emit('model:selectState')
         })
 
@@ -168,7 +179,7 @@ export class App {
         this.$on('tree:selectModel', (e) => {
             this.project.selectModel(e.value)
             this.$emit('project:selectModel')
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
 
         this.$on('options:changeName', (e) => {
@@ -210,7 +221,7 @@ export class App {
         this.$on('options:addChild', (e) => {
             this.project.addChild()
             this.$emit('project:selectModel')
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
 
         this.$on('options:removeModel', (e) => {
@@ -231,69 +242,69 @@ export class App {
         // boxContainerPosition
         this.$on('options:boxContainerPosition_x', (e) => {
             this.project.moveXSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
         this.$on('options:boxContainerPosition_y', (e) => {
             this.project.moveYSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
         this.$on('options:boxContainerPosition_z', (e) => {
             this.project.moveZSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
 
         // boxContainerRotation
         this.$on('options:boxContainerRotation_x', (e) => {
             this.project.rotateXSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
         this.$on('options:boxContainerRotation_y', (e) => {
             this.project.rotateYSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
         this.$on('options:boxContainerRotation_z', (e) => {
             this.project.rotateZSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
 
         // boxPosition
         this.$on('options:boxPosition_x', (e) => {
             this.project.moveContentXSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
         this.$on('options:boxPosition_y', (e) => {
             this.project.moveContentYSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
         this.$on('options:boxPosition_z', (e) => {
             this.project.moveContentZSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
 
         // boxSize
         this.$on('options:boxSize_x', (e) => {
             this.project.sizeContentXSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
         this.$on('options:boxSize_y', (e) => {
             this.project.sizeContentYSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
         this.$on('options:boxSize_z', (e) => {
             this.project.sizeContentZSelected(e.value)
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
 
         this.$on('options:boxSize_autoY', (e) => {
             this.project.setSizeYByMash()
             this.$emit('project:updateModel')
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
 
         this.$on('options:boxSize_autoZ', (e) => {
             this.project.setSizeZByMash()
             this.$emit('project:updateModel')
-            this.$emit('model:boundsChange', {model:this.project.selectedModel})
+            this.$emit('model:boundsChange', {model: this.project.selectedModel})
         })
 
 
@@ -410,8 +421,23 @@ export class App {
         // localStorage.setItem('projects', projects);
     }
 
-    downloadProject(){
+    downloadProject() {
         download(JSON.stringify(this.project.getForStore()), `${this.project.name}.json`, 'application/json')
+    }
+
+    loadProjectFromObj(obj, save) {
+        let project
+        if (!obj.model) {
+            // This json is not a project - it is a Model
+            project = {
+                name: obj.name,
+                model: {...obj}
+            }
+        } else {
+            project = {...obj}
+        }
+        this.loadProject(project)
+        if (save) this.saveProject()
     }
 
     loadProject(projObj = {}) {

@@ -4,6 +4,7 @@ import {generateStateBlock, loadMesh, manageStates, uploadJSONProject} from '@/c
 import {createItems} from '@core/template.functions'
 import {getBlocks} from '@/components/toolbar/toolbar.blocks'
 import * as bootbox from 'bootbox'
+import {v4 as uuidv4} from 'uuid'
 
 export class Toolbar extends Component {
     static className = 'app__toolbar'
@@ -100,6 +101,33 @@ export class Toolbar extends Component {
 
             if ($target.data('name') === 'uploadProject') {
                 return uploadJSONProject.call(this, e)
+            }
+
+            if ($target.data('name') === 'uploadProjectFromJSON') {
+
+                var id = uuidv4()
+                bootbox.dialog({
+                    title: 'Type a JSON with project or model',
+                    message: '<label>JSON:</label><textarea id="jsonContainer_'+ id +'"></textarea>',
+                    buttons: {
+                        success: {
+                            label: 'Load',
+                            callback: ()=>{
+
+                                this.$emit('toolbar:uploadJSONProject', {json: $('#jsonContainer_' + id).val()})
+
+                            }
+                        },
+                        error: {
+                            label: 'Close',
+                            callback: function(){
+
+                            }
+                        }
+                    }
+                });
+
+                return
             }
 
             if ($target.data('name') === 'newProject') {

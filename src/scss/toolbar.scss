@@ -13,6 +13,10 @@
   display: flex;
 
 
+  input.projectName{
+    width: 300px;
+  }
+
   .button {
     @include button();
   }

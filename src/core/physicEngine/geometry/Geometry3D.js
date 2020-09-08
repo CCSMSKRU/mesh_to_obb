@@ -5,6 +5,7 @@ import {Matrix4} from '@core/physicEngine/geometry/Matrix4'
 import {v1 as uuidv1} from 'uuid'
 import * as THREE from 'three'
 import MyError from '@core/error'
+import {cloneObj} from '@core/functions'
 
 export class Geometry3D {
     constructor(props) {
@@ -187,6 +188,10 @@ export class AABB {
         this.size = size || new Vector3(0, 0, 0)
     }
 
+    copy(){
+        return new AABB(new Point3D(...this.position.asArray), new Vector3(...this.size.asArray))
+    }
+
 
     getMin() {
         let p1 = this.position.add(this.size)
@@ -344,6 +349,10 @@ export class OBB extends AABB {
         this.position = position || new Point3D()
         this.size = size || new Vector3()
         this.orientation = orientation || new Matrix3()
+    }
+
+    copy(){
+        return new OBB(new Point3D(...this.position.asArray), new Vector3(...this.size.asArray), new Matrix3(...this.orientation.asArray))
     }
 
     get rotation() {
@@ -1314,6 +1323,7 @@ export class Model {
         if (obj.states && Array.isArray(obj.states)) {
             obj.states.map(state => {
                 const obj = {...state}
+                obj.editMode = false // не важно что сохранено
                 if (state.position) {
                     state.position = new Vector3(state.position._x, state.position._y, state.position._z)
                     obj.position = new Vector3(...state.position.asArray)
@@ -1428,7 +1438,7 @@ export class Model {
             position_orig: this.position_orig,
             rotation_orig: this.rotation_orig,
             states: this.states,
-            graphicOptions: this.graphicOptions,
+            graphicOptions:cloneObj(this.graphicOptions),
         }
         if (res.content) res.content.instanceName = getPrimitiveInstanceName(res.content)
         Object.keys(this).forEach(key => {

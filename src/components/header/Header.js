@@ -25,7 +25,7 @@ export class Header extends Component {
 
         return `
             <input type="text" 
-                class="input" 
+                class="input projectName" 
                 value="${this.project.name}"
                 data-type="header_input"
                 data-name="projectName"

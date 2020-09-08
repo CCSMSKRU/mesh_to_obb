@@ -4,6 +4,9 @@
  * Copyright (c) 2020.
  */
 
+import * as toastr from 'toastr'
+import MyError from '@core/error'
+
 export const populateProjects = (projects = [])=>{
     return projects.map(one=>{
         return `<div 
@@ -29,3 +32,24 @@ export const populateProjects = (projects = [])=>{
 }
 
 
+export const readFromJSONFile = async (file) => {
+
+    return new Promise((res, rej)=>{
+        var reader = new FileReader()
+        reader.onload = () => {
+            console.log('RES', reader.result);
+            try {
+                const json = JSON.parse(reader.result)
+                res(json)
+            } catch (e) {
+                rej(new MyError('Invalid JSON', {e, result:reader.result}))
+            }
+
+        }
+        reader.onerror = (error) => {
+            rej(new MyError('Error while reading file', {error, file}))
+        }
+        reader.readAsText(file)
+    })
+
+}
