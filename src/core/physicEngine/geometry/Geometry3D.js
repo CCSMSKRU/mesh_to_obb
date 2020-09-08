@@ -188,7 +188,7 @@ export class AABB {
         this.size = size || new Vector3(0, 0, 0)
     }
 
-    copy(){
+    copy() {
         return new AABB(new Point3D(...this.position.asArray), new Vector3(...this.size.asArray))
     }
 
@@ -351,7 +351,7 @@ export class OBB extends AABB {
         this.orientation = orientation || new Matrix3()
     }
 
-    copy(){
+    copy() {
         return new OBB(new Point3D(...this.position.asArray), new Vector3(...this.size.asArray), new Matrix3(...this.orientation.asArray))
     }
 
@@ -1410,9 +1410,6 @@ export class Model {
     }
 
     saveOrigState() {
-        if (this._rotation._z === 30){
-            debugger;
-        }
         this.position_orig = new Vector3(...this._position.asArray)
         this.rotation_orig = new Vector3(...this._rotation.asArray)
     }
@@ -1438,7 +1435,7 @@ export class Model {
             position_orig: this.position_orig,
             rotation_orig: this.rotation_orig,
             states: this.states,
-            graphicOptions:cloneObj(this.graphicOptions),
+            graphicOptions: cloneObj(this.graphicOptions),
         }
         if (res.content) res.content.instanceName = getPrimitiveInstanceName(res.content)
         Object.keys(this).forEach(key => {
@@ -1552,7 +1549,7 @@ export class Model {
         if (vDirection && this._boundsFull) {
             this._boundsFull.position = this._boundsFull.position.add(vDirection)
         }
-        if (!this.isInToStateProcess){
+        if (!this.getTopModel().isInToStateProcess) {
             if (this.selectedState && this.selectedState.editMode) this.saveToSelectedState()
             else if (!this.selectedState) this.saveOrigState()
         }
@@ -1628,7 +1625,7 @@ export class Model {
         this._rotation = vRotation
         // Обнулим _boundsFull чтобы они посчитались при следующей необходимости заново
         this.clearBoundsFull()
-        if (!this.isInToStateProcess){
+        if (!this.getTopModel().isInToStateProcess) {
             if (this.selectedState && this.selectedState.editMode) this.saveToSelectedState()
             else if (!this.selectedState) this.saveOrigState()
         }
@@ -1835,10 +1832,12 @@ export class Model {
             return this.parent.toState(sysname)
         }
 
-        // Установим флаг, что сейчас идет переход в определенное состояние
-        this.isInToStateProcess = true
+        // // Установим флаг, что сейчас идет переход в определенное состояние
+        // this.isInToStateProcess = true
 
         if (!this.parent) {
+            // Установим флаг, что сейчас идет переход в определенное состояние
+            this.isInToStateProcess = true
             // Установим новый state
             this.selectedState = this.getTopModel().states.filter(one => one.sysname === sysname)[0] || null
         }
@@ -1850,9 +1849,11 @@ export class Model {
         this.position = state_obj.position || this.position_orig || this._position
         this.rotation = state_obj.rotation || this.rotation_orig || this._rotation
 
-        // Снимем флаг, что сейчас идет переход в определенное состояние
-        this.isInToStateProcess = false
 
+        if (!this.parent) {
+            // Снимем флаг, что сейчас идет переход в определенное состояние
+            this.isInToStateProcess = false
+        }
 
 
     }
@@ -2139,7 +2140,7 @@ export class Model {
         this._rotation = this._rotation.add(vRotate)
         // Обнулим _boundsFull чтобы они посчитались при следующей необходимости заново
         this.clearBoundsFull()
-        if (!this.isInToStateProcess){
+        if (!this.getTopModel().isInToStateProcess) {
             if (this.selectedState && this.selectedState.editMode) this.saveToSelectedState()
             else if (!this.selectedState) this.saveOrigState()
         }
