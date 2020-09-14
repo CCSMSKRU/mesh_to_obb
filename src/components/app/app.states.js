@@ -9,6 +9,7 @@ import * as toastr from 'toastr'
 import * as bootbox from 'bootbox'
 import {$} from '@core/jquery.extends'
 import {createButton, createInput, createItems} from '@core/template.functions'
+import {Vector3} from '@core/physicEngine/geometry/Vector3'
 
 
 const populateStates = (projects = []) => {
@@ -20,17 +21,31 @@ const populateStates = (projects = []) => {
                     data-id="${one.sysname}"
                 >
                     <div class="name">${one.name} (${one.sysname})</div>
-                    <button 
-                        class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored" 
-                        data-type="state-row-remove-btn"
-                        data-name="${one.name}"
-                        data-id="${one.sysname}"
-                      >
-                      <i class="material-icons"
-                        data-name="${one.name}"
-                        data-id="${one.sysname}"
-                      >delete</i>
-                    </button>
+                    <div>
+                         ${!one.generated? `<button 
+                            class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored" 
+                            data-type="state-row-rotate180-btn"
+                            data-name="${one.name}"
+                            data-id="${one.sysname}"
+                          >
+                          <i class="material-icons"
+                            data-name="${one.name}"
+                            data-id="${one.sysname}"
+                          >3d_rotation</i>
+                        </button>` : ``}
+                        <button 
+                            class="mdl-button mdl-js-button mdl-button--icon mdl-button--colored" 
+                            data-type="state-row-remove-btn"
+                            data-name="${one.name}"
+                            data-id="${one.sysname}"
+                          >
+                          <i class="material-icons"
+                            data-name="${one.name}"
+                            data-id="${one.sysname}"
+                          >delete</i>
+                        </button>
+                    </div>
+                   
                 </div>`
     }).join('')
 }
@@ -68,6 +83,14 @@ export function manageStateInit() {
                     value: '',
                     width: 180,
                     func: createInput
+                },
+                {
+                    name: '180',
+                    icon: '3d_rotation',
+                    datas: [
+                        'data-type="newState180_button"',
+                    ],
+                    func: createButton
                 },
                 {
                     name: 'add',
@@ -177,6 +200,26 @@ export function manageStateInit() {
             // }
         })
 
+        b1.find('[data-type="newState180_button"]').off('click').on('click', function(e) {
+            e.stopPropagation()
+            // const $this = $(this)
+            bootbox.confirm({
+                title: `Generate STATE 180° from DEFAULT state`,
+                message: '<div class="attention">Are you sure?</div>',
+                callback: (res) => {
+                    if (!res) return
+                    const err = _t.project.model.generateState(null, {namePostfix:'180', rotate: new Vector3(0, 180, 0)})
+                    if (err){
+                        console.log(err)
+                        toastr.error(err.message)
+                        return
+                    }
+                    b1.modal('hide')
+                    _t.$emit('toolbar:manageStates')
+                }
+            })
+        })
+
 
         b1.find('[data-type="state-row-select"]').off('click').on('click', function(e) {
             const $this = $(this)
@@ -207,9 +250,33 @@ export function manageStateInit() {
                 callback: (res) => {
                     if (!res) return
                     const err = _t.project.model.removeState(sysname)
-                    if (!err) $this.parent('.one-state-row').remove()
+                    if (!err) {
+                        const row = $this.parents('.one-state-row')[0]
+                        if (row) row.remove()
+                    }
                     _t.$emit('project:updateModel')
                     toastr.success('STATE successful removed')
+                }
+            })
+        })
+
+        b1.find('button[data-type="state-row-rotate180-btn"]').off('click').on('click', function(e) {
+            e.stopPropagation()
+            const $this = $(this)
+            const sysname = $this.data('id')
+            bootbox.confirm({
+                title: `Generate STATE 180° from CURRENT state`,
+                message: '<div class="attention">Are you sure?</div>',
+                callback: (res) => {
+                    if (!res) return
+                    const err = _t.project.model.generateState(sysname, {namePostfix:'180', rotate: new Vector3(0, 180, 0)})
+                    if (err){
+                        console.log(err)
+                        toastr.error(err.message)
+                        return
+                    }
+                    b1.modal('hide')
+                    _t.$emit('toolbar:manageStates')
                 }
             })
         })

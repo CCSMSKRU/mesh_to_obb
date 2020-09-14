@@ -4,7 +4,7 @@ import {Matrix3} from '@core/physicEngine/geometry/Matrix3'
 import {Matrix4} from '@core/physicEngine/geometry/Matrix4'
 import {v1 as uuidv1} from 'uuid'
 import * as THREE from 'three'
-import MyError from '@core/error'
+import MyError, {UserError} from '@core/error'
 import {cloneObj} from '@core/functions'
 
 export class Geometry3D {
@@ -1796,6 +1796,29 @@ export class Model {
         return state
     }
 
+    generateState(stateOrigSysname, options = {}){
+        const state = this.getAllStates().filter(one=>one.sysname = stateOrigSysname)[0]
+        const namePostfix = options.namePostfix || ''
+        const name = options.name || (state? state.name + '_' + namePostfix : namePostfix)
+        const sysnamePostfix = options.sysnamePostfix
+            ? options.sysnamePostfix.toUpperCase().replace(/\s/ig, '_')
+            : namePostfix.toUpperCase().replace(/\s/ig, '_')
+        const sysname = options.sysname || (state? state.sysname + '_' + sysnamePostfix : sysnamePostfix)
+        if (!sysname) return new MyError('No sysname or namePostfix or sysnamePostfix', {options})
+        const exist = this.states.filter(one => one.sysname === sysname)[0]
+        if (exist) return new UserError('State with same sysname already exist', {options, exist})
+
+        const newState = this.addState(name, sysname)
+        const selectedState = this.selectedState
+        this.toState(newState.sysname)
+        this.selectedState.editMode = true
+        this.selectedState.generated = true
+        if (options.rotate) this.rotate(options.rotate)
+        if (options.move) this.move(options.move)
+        this.selectedState.editMode = false
+        this.toState(selectedState)
+    }
+
     removeState(sysname, fromParent) {
         if (!fromParent && this.parent) {
             return this.parent.saveToSelectedState()
@@ -1828,6 +1851,7 @@ export class Model {
     }
 
     toState(sysname, fromParent) {
+        if (sysname && typeof sysname !== 'string') sysname = '' + sysname
         if (!fromParent && this.parent) {
             return this.parent.toState(sysname)
         }
