@@ -1783,7 +1783,8 @@ export class Model {
     };
 
     addState(name, sysname) {
-        const exist = this.states.filter(one => one.sysname === sysname)[0]
+        if (sysname && typeof sysname !== 'string') sysname = '' + sysname
+        const exist = this.getAllStates().filter(one => one.sysname === sysname)[0]
         if (exist) return exist
         const state = {
             name: name || 'Unnamed',
@@ -1801,8 +1802,32 @@ export class Model {
         return state
     }
 
+    copyState(state, options = {}){
+        let newState
+        if (state) {
+            const copyOfState = {}
+            Object.keys(state).forEach(key=>{
+                if (state[key] instanceof Vector3) copyOfState[key] = new Vector3(...state[key].asArray)
+                else if (typeof state[key] === 'object' && state[key] !== null) copyOfState[key] = cloneObj(state[key])
+                copyOfState[key] = state[key]
+            })
+            newState = {...copyOfState, ...options}
+            this.states.push(newState)
+        } else {
+            newState = this.addState(options.name, options.sysname)
+        }
+
+        this.childs.forEach(child => {
+            const childState = state? child.getAllStates(true).filter(one=>one.sysname === state.sysname)[0] : null
+            child.copyState(childState, options)
+        })
+
+        return newState
+    }
+
     generateState(stateOrigSysname, options = {}){
-        const state = this.getAllStates().filter(one=>one.sysname = stateOrigSysname)[0]
+        if (stateOrigSysname && typeof stateOrigSysname !== 'string') stateOrigSysname = '' + stateOrigSysname
+        const state = this.getAllStates().filter(one=>one.sysname === stateOrigSysname)[0]
         const namePostfix = options.namePostfix || ''
         const name = options.name || (state? state.name + '_' + namePostfix : namePostfix)
         const sysnamePostfix = options.sysnamePostfix
@@ -1810,10 +1835,12 @@ export class Model {
             : namePostfix.toUpperCase().replace(/\s/ig, '_')
         const sysname = options.sysname || (state? state.sysname + '_' + sysnamePostfix : sysnamePostfix)
         if (!sysname) return new MyError('No sysname or namePostfix or sysnamePostfix', {options})
-        const exist = this.states.filter(one => one.sysname === sysname)[0]
+        const exist = this.getAllStates().filter(one => one.sysname === sysname)[0]
         if (exist) return new UserError('State with same sysname already exist', {options, exist})
 
-        const newState = this.addState(name, sysname)
+        let newState = this.copyState(state, {name, sysname})
+            // let newState = this.addState(name, sysname)
+
         const selectedState = this.selectedState
         this.toState(newState.sysname)
         this.selectedState.editMode = true
@@ -1822,9 +1849,11 @@ export class Model {
         if (options.move) this.move(options.move)
         this.selectedState.editMode = false
         this.toState(selectedState)
+
     }
 
     removeState(sysname, fromParent) {
+        if (sysname && typeof sysname !== 'string') sysname = '' + sysname
         if (!fromParent && this.parent) {
             return this.parent.saveToSelectedState()
         }
