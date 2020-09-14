@@ -187,6 +187,12 @@ export class App {
             this.$emit('project:changeName')
         })
 
+        this.$on('options:changeAlias', (e) => {
+            if (this.project.model) {
+                this.project.model.alias = e.value
+            }
+        })
+
         this.$on('options:opacity', (e) => {
             if (this.project.model) {
                 this.project.model.graphicOptions.opacity = e.value

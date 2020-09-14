@@ -86,6 +86,7 @@ export class Options extends Component {
         // work with selected model
         if ($target.data('category') === 'selected') {
             if ($target.data('name') === 'name') return this.$emit('options:changeName', {value: $target.val()})
+            if ($target.data('name') === 'alias') return this.$emit('options:changeAlias', {value: $target.val()})
             if ($target.data('name') === 'addChild') return this.$emit('options:addChild')
         } else if ($target.data('category') === 'defaultSteps') {
             if ($target.data('name') === 'size') return this.defaultSteps.size = +$target.val()
