@@ -1292,7 +1292,7 @@ export class BVHNode {
 }
 
 export class Model {
-    static fromOBJ(obj = {}) {
+    static fromOBJ(obj = {}, dropOrig) {
         let content, pos, size, orientation
         if (obj.content && obj.content.instanceName) {
             switch (obj.content.instanceName) {
@@ -1311,6 +1311,11 @@ export class Model {
                     console.warn('Method has not implementation for this instanceName', obj.content.instanceName, obj.content)
                     break
             }
+        }
+
+        if (dropOrig) {
+            obj.position_orig = undefined
+            obj.rotation_orig = undefined
         }
 
         const position_ = obj.position_orig || obj.position
@@ -1340,7 +1345,7 @@ export class Model {
 
         if (obj.childs && Array.isArray(obj.childs)) {
             obj.childs.forEach(child => {
-                model.addChild(Model.fromOBJ(child))
+                model.addChild(Model.fromOBJ(child, dropOrig))
             })
         }
         return model
