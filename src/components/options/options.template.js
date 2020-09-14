@@ -35,6 +35,12 @@ export function createOptions(data = {}, options = {}) {
                     value: model ? model.name : '',
                     func: createInput
                 },
+                {
+                    name: 'alias',
+                    title: 'Alias',
+                    value: model ? model.getTopModel().alias : '',
+                    func: createInput
+                },
             ],
             isSupport: {
                 func: createSwitch,
