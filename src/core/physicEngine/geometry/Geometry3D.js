@@ -1802,11 +1802,11 @@ export class Model {
         return state
     }
 
-    copyState(state, options = {}){
+    copyState(state, options = {}) {
         let newState
         if (state) {
             const copyOfState = {}
-            Object.keys(state).forEach(key=>{
+            Object.keys(state).forEach(key => {
                 if (state[key] instanceof Vector3) copyOfState[key] = new Vector3(...state[key].asArray)
                 else if (typeof state[key] === 'object' && state[key] !== null) copyOfState[key] = cloneObj(state[key])
                 copyOfState[key] = state[key]
@@ -1818,28 +1818,28 @@ export class Model {
         }
 
         this.childs.forEach(child => {
-            const childState = state? child.getAllStates(true).filter(one=>one.sysname === state.sysname)[0] : null
+            const childState = state ? child.states.filter(one => one.sysname === state.sysname)[0] : null
             child.copyState(childState, options)
         })
 
         return newState
     }
 
-    generateState(stateOrigSysname, options = {}){
+    generateState(stateOrigSysname, options = {}) {
         if (stateOrigSysname && typeof stateOrigSysname !== 'string') stateOrigSysname = '' + stateOrigSysname
-        const state = this.getAllStates().filter(one=>one.sysname === stateOrigSysname)[0]
+        const state = this.getAllStates().filter(one => one.sysname === stateOrigSysname)[0]
         const namePostfix = options.namePostfix || ''
-        const name = options.name || (state? state.name + '_' + namePostfix : namePostfix)
+        const name = options.name || (state ? state.name + '_' + namePostfix : namePostfix)
         const sysnamePostfix = options.sysnamePostfix
             ? options.sysnamePostfix.toUpperCase().replace(/\s/ig, '_')
             : namePostfix.toUpperCase().replace(/\s/ig, '_')
-        const sysname = options.sysname || (state? state.sysname + '_' + sysnamePostfix : sysnamePostfix)
+        const sysname = options.sysname || (state ? state.sysname + '_' + sysnamePostfix : sysnamePostfix)
         if (!sysname) return new MyError('No sysname or namePostfix or sysnamePostfix', {options})
         const exist = this.getAllStates().filter(one => one.sysname === sysname)[0]
         if (exist) return new UserError('State with same sysname already exist', {options, exist})
 
         let newState = this.copyState(state, {name, sysname})
-            // let newState = this.addState(name, sysname)
+        // let newState = this.addState(name, sysname)
 
         const selectedState = this.selectedState
         this.toState(newState.sysname)
