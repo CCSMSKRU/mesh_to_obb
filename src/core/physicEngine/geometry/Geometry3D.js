@@ -1784,7 +1784,7 @@ export class Model {
 
     addState(name, sysname) {
         if (sysname && typeof sysname !== 'string') sysname = '' + sysname
-        const exist = this.getAllStates().filter(one => one.sysname === sysname)[0]
+        const exist = this.states.filter(one => one.sysname === sysname)[0]
         if (exist) return exist
         const state = {
             name: name || 'Unnamed',
@@ -1836,7 +1836,7 @@ export class Model {
             : namePostfix.toUpperCase().replace(/\s/ig, '_')
         const sysname = options.sysname || (state ? state.sysname + '_' + sysnamePostfix : sysnamePostfix)
         if (!sysname) return new MyError('No sysname or namePostfix or sysnamePostfix', {options})
-        const exist = this.getAllStates().filter(one => one.sysname === sysname)[0]
+        const exist = this.getTopModel().states.filter(one => one.sysname === sysname)[0]
         if (exist) return new UserError('State with same sysname already exist', {options, exist})
 
         let newState = this.copyState(state, {name, sysname})
@@ -1872,14 +1872,31 @@ export class Model {
 
         const changes = {}
 
+        // const state =
+        //     this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
+        //     || this.addState(this.selectedState.name, this.selectedState.sysname)
+
+        // debugger;
         if (this.position_orig && !this.position.equal(this.position_orig)) changes['position'] = new Vector3(...this.position.asArray)
         if (this.rotation_orig && !this.rotation.equal(this.rotation_orig)) changes['rotation'] = new Vector3(...this.rotation.asArray)
 
+        // if (state.position && !this.position.equal(state.position)) changes['position'] = new Vector3(...this.position.asArray)
+        // if (state.rotation && !this.rotation.equal(state.rotation)) changes['rotation'] = new Vector3(...this.rotation.asArray)
+        // Object.keys(changes).forEach(key => state[key] = changes[key])
+
+        let state =  this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
         if (Object.keys(changes).length) {
-            const state =
-                this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
-                || this.addState(this.selectedState.name, this.selectedState.sysname)
-            Object.keys(changes).forEach(key => state[key] = changes[key])
+            // const state =
+            //     this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
+            //     || this.addState(this.selectedState.name, this.selectedState.sysname)
+            if (!state) state = this.addState(this.selectedState.name, this.selectedState.sysname)
+            Object.keys(changes).forEach(key => {
+                // this[`${key}_orig`] = changes[key]
+                state[key] = changes[key]
+            })
+        } else if (state){
+            state['position'] = undefined
+            state['rotation'] = undefined
         }
 
         this._childs.forEach(one => one.saveToSelectedState(true))
@@ -2199,10 +2216,10 @@ export class Model {
         this._rotation = this._rotation.add(vRotate)
         // Обнулим _boundsFull чтобы они посчитались при следующей необходимости заново
         this.clearBoundsFull()
-        if (!this.getTopModel().isInToStateProcess) {
-            if (this.selectedState && this.selectedState.editMode) this.saveToSelectedState()
-            else if (!this.selectedState) this.saveOrigState()
-        }
+        // if (!this.getTopModel().isInToStateProcess) {
+        //     if (this.selectedState && this.selectedState.editMode) this.saveToSelectedState()
+        //     else if (!this.selectedState) this.saveOrigState()
+        // }
     }
 
     rotateX(val) {

@@ -58,7 +58,6 @@ export class Toolbar extends Component {
             //
             // this.$root.find('[data-id="stateName"]').text(name)
 
-            console.log('this', this)
 
             this.$root.find('[data-id="stateBlock"]').replaceWith(generateStateBlock.call(this))
 

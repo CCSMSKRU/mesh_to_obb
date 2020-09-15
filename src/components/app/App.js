@@ -326,7 +326,6 @@ export class App {
         })
 
 
-        console.log('this.project', this.project)
 
     }
 

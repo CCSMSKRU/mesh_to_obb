@@ -54,7 +54,6 @@ export class Vector3 {
 
     multiply(v) {
         if (!(v instanceof Vector3)) {
-            console.log(v);
             throw new Error('In Vector3 multiply v is not a Vector3. See console')
         }
         return new Vector3(this.x * v.x, this.y * v.y, this.z * v.z);

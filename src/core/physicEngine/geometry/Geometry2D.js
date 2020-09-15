@@ -313,7 +313,6 @@ export class Line2D {
         const M = dy / dx
         const B = this.start.y - M * this.start.x
         const diff = Math.abs(point.y - (M * point.x + B))
-        console.log('diff', diff)
         return (diff < this.deviation)
     };
 

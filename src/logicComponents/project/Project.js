@@ -155,9 +155,9 @@ export class Project {
 
     saveToJSON(){
         const json = this.toJSON()
-        console.log(json);
-        var o = JSON.parse(json)
-        console.log('o', o);
+        // console.log(json);
+        // var o = JSON.parse(json)
+        // console.log('o', o);
 
         return this.toJSON()
     }
@@ -219,63 +219,75 @@ export class Project {
     // Container
     moveXSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.setPositionX(val)
+        if (isNaN(+val)) return
+        this.selectedModel.setPositionX(+val)
     }
 
     moveYSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.setPositionY(val)
+        if (isNaN(+val)) return
+        this.selectedModel.setPositionY(+val)
     }
 
     moveZSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.setPositionZ(val)
+        if (isNaN(+val)) return
+        this.selectedModel.setPositionZ(+val)
     }
 
     rotateXSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.rotateX(val)
+        if (isNaN(+val)) return
+        this.selectedModel.rotateX(+val)
     }
 
     rotateYSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.rotateY(val)
+        if (isNaN(+val)) return
+        this.selectedModel.rotateY(+val)
     }
 
     rotateZSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.rotateZ(val)
+        if (isNaN(+val)) return
+        this.selectedModel.rotateZ(+val)
     }
 
     // Content
     moveContentXSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.setContentPositionX(val)
+        if (isNaN(+val)) return
+        this.selectedModel.setContentPositionX(+val)
     }
 
     moveContentYSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.setContentPositionY(val)
+        if (isNaN(+val)) return
+        this.selectedModel.setContentPositionY(+val)
     }
 
     moveContentZSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.setContentPositionZ(val)
+        if (isNaN(+val)) return
+        this.selectedModel.setContentPositionZ(+val)
     }
 
     sizeContentXSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.sizeX(val)
+        if (isNaN(+val)) return
+        this.selectedModel.sizeX(+val)
     }
 
     sizeContentYSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.sizeY(val)
+        if (isNaN(+val)) return
+        this.selectedModel.sizeY(+val)
     }
 
     sizeContentZSelected(val) {
         if (!this.selectedModel) return
-        this.selectedModel.sizeZ(val)
+        if (isNaN(+val)) return
+        this.selectedModel.sizeZ(+val)
     }
 
     getSizeYByMash() {
