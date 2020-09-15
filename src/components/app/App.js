@@ -171,7 +171,7 @@ export class App {
         this.$on('toolbar:downloadAllProjects', (e) => {
             bootbox.confirm({
                 title: `Download ALL Projects`,
-                message: '<div class="attention">Only saved projects will be downloaded</div>',
+                message: '<div class="attention">Only saved projects will be download</div>',
                 callback: (res) => {
                     if (!res) return
                     this.downloadProjects()
