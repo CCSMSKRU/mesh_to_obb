@@ -5,6 +5,7 @@
  */
 
 import {$} from '@core/jquery.extends'
+import moment from 'moment'
 import {Emitter} from '@core/Emitter'
 import {Project} from '@/logicComponents/project/Project'
 import {Model} from '@core/physicEngine/geometry/Geometry3D'
@@ -165,6 +166,10 @@ export class App {
 
         this.$on('toolbar:downloadProject', (e) => {
             this.downloadProject()
+        })
+
+        this.$on('toolbar:downloadAllProjects', (e) => {
+            this.downloadProjects()
         })
 
 
@@ -429,6 +434,10 @@ export class App {
 
     downloadProject() {
         download(JSON.stringify(this.project.getForStore()), `${this.project.name}.json`, 'application/json')
+    }
+
+    downloadProjects() {
+        download(localStorage.getItem('projects'), `projects_${moment().format('YYYY_MM_DD_HHmm')}.json`, 'application/json')
     }
 
     loadProjectFromObj(obj, save) {

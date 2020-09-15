@@ -62,6 +62,11 @@ export const getBlocks = (project, options) => {
                     name: 'downloadProject',
                     icon: 'get_app',
                     hint:'Save Project in JSON file'
+                },
+                {
+                    name: 'downloadAllProjects',
+                    icon: 'archive',
+                    hint:'Save ALL Projects in JSON file'
                 }
             ]
         },
