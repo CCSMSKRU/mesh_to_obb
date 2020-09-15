@@ -1805,6 +1805,7 @@ export class Model {
     copyState(state, options = {}) {
         let newState
         if (state) {
+            if (!options.sysname_orig) options.sysname_orig = state.sysname
             const copyOfState = {}
             Object.keys(state).forEach(key => {
                 if (state[key] instanceof Vector3) copyOfState[key] = new Vector3(...state[key].asArray)
@@ -1818,7 +1819,7 @@ export class Model {
         }
 
         this.childs.forEach(child => {
-            const childState = state ? child.states.filter(one => one.sysname === state.sysname)[0] : null
+            const childState = child.states.filter(one => one.sysname === options.sysname_orig)[0]
             child.copyState(childState, options)
         })
 
@@ -1827,7 +1828,7 @@ export class Model {
 
     generateState(stateOrigSysname, options = {}) {
         if (stateOrigSysname && typeof stateOrigSysname !== 'string') stateOrigSysname = '' + stateOrigSysname
-        const state = this.getAllStates().filter(one => one.sysname === stateOrigSysname)[0]
+        const state = this.getTopModel().states.filter(one => one.sysname === stateOrigSysname)[0]
         const namePostfix = options.namePostfix || ''
         const name = options.name || (state ? state.name + '_' + namePostfix : namePostfix)
         const sysnamePostfix = options.sysnamePostfix
