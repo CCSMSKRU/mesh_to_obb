@@ -1385,11 +1385,9 @@ export class Model {
         this.supportGroups = this.isSupport
             ? obj.supportGroups
             || (() => {
+                // console.log('this.content.size', this.content.size.asArray, this.position.asArray)
                 let sizeCorrected = this.content && this.content.size ? this.content.size : this.bounds.size
-
-                // sizeCorrected = sizeCorrected.add(new Vector3(-this.position.x,-this.position.y,-this.position.z))
-                // sizeCorrected = sizeCorrected.subtract(this.position)
-                // if (this.content) sizeCorrected = sizeCorrected.subtract(this.content.position)
+                if (this.content) sizeCorrected = sizeCorrected.subtract(this.content.position)
 
                 const supportOffset = obj.supportOffset || 100
                 const supportOffsetX = obj.supportOffsetX || supportOffset || 100
