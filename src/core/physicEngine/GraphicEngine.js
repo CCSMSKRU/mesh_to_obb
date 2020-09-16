@@ -39,6 +39,8 @@ export class GraphicEngine {
         this.scale = obj.scale || new Vector3(0.0265, 0.0265, 0.0265)
         this.offset = obj.offset || new Vector3(0, 0, 0)
 
+        this.listeners3D = []
+
     }
 
     get contextXY() {
@@ -59,6 +61,7 @@ export class GraphicEngine {
         this._container = val
             ? typeof val === 'string' ? $(val) : val
             : $('body')
+        // if (this._container) this._container[0].listeners3D = this._container[0].listeners3D || []
     }
 
     get containerXY() {
@@ -99,6 +102,7 @@ export class GraphicEngine {
         this._container3D = val
             ? typeof val === 'string' ? $(val) : val
             : null
+        // if (this._container3D) this._container3D[0].listeners3D = this._container3D[0].listeners3D || []
     }
 
     get optionsXY() {
@@ -196,7 +200,6 @@ export class GraphicEngine {
 
             let delta = e.wheelDelta / 20000
             this.scale = this.scale.add(new Vector3(delta, delta, delta))
-            // console.log(this.scale);
         })
 
         this.canvasXY.on('mousedown', (e) => {
@@ -238,7 +241,6 @@ export class GraphicEngine {
 
             let delta = e.wheelDelta / 20000
             this.scale = this.scale.add(new Vector3(delta, delta, delta))
-            // console.log(this.scale);
         })
 
         this.canvasXZ.on('mousedown', (e) => {
@@ -280,7 +282,6 @@ export class GraphicEngine {
 
             let delta = e.wheelDelta / 20000
             this.scale = this.scale.add(new Vector3(delta, delta, delta))
-            // console.log(this.scale);
         })
 
         this.canvasYZ.on('mousedown', (e) => {
@@ -304,6 +305,9 @@ export class GraphicEngine {
         })
 
         return this
+    }
+
+    selectOn3DEvent() {
     }
 
     init3D(options, container) {
@@ -330,7 +334,10 @@ export class GraphicEngine {
         // this.scene3D.add( mesh );
 
 
-        this.renderer3D = new THREE.WebGLRenderer({antialias: true})
+        this.renderer3D = new THREE.WebGLRenderer({
+            antialias: true,
+            preserveDrawingBuffer: this.options3D.preserveDrawingBuffer
+        })
         //renderer.shadowMapEnabled = true;
         this.renderer3D.setSize(this.options3D.width, this.options3D.height)
         const clearColor = typeof this.options3D.clearColor !== 'undefined'? this.options3D.clearColor : 0xA7B0C4
@@ -409,7 +416,75 @@ export class GraphicEngine {
         //     this.canvasXY.on('mouseup', upFunc)
         // })
 
+        // if (false) {
+        //
+        //     const listener = {event: 'mousedown', target: this.container3D[0]}
+        //
+        //     listener.fn = (event) => {
+        //         event.preventDefault()
+        //         // console.log('X',event.clientX, listener.target.width())
+        //         const elemBound = listener.target.getBoundingClientRect()
+        //         const x = event.clientX - elemBound.x
+        //         const y = event.clientY - elemBound.y
+        //
+        //         const mouse3D = new THREE.Vector3((x / elemBound.width) * 2 - 1,
+        //             -(y / elemBound.height) * 2 + 1,
+        //             0.5)
+        //
+        //         console.log('mouse3D', mouse3D)
+        //         const raycaster = new THREE.Raycaster()
+        //         raycaster.setFromCamera(mouse3D, this.camera3D)
+        //         // var raycaster = new THREE.Raycaster(this.camera3D.position, mouse3D.sub(this.camera3D.position).normalize());
+        //         // console.log('this.scene3D',this.scene3D)
+        //         var intersects = raycaster.intersectObjects(this.scene3D.children)
+        //         console.log(intersects)
+        //         if (intersects.length > 0) {
+        //             intersects[0].object.material.color.setHex(Math.random() * 0xffffff)
+        //         }
+        //     }
+        //
+        //
+        //     this.container3D[0].listeners3D.push(listener)
+        //
+        //     console.log('addEventListener', this.container3D[0].listeners3D)
+        //     listener.target.addEventListener(listener.event, listener.fn)
+        //
+        //
+        // }
+
+        if (this.options3D.selectOn3DEvent) {
+
+
+            this.selectOn3DEvent = (event, cb) => {
+                event.preventDefault()
+                const elemBound = this.container3D[0].getBoundingClientRect()
+                const x = event.clientX - elemBound.x
+                const y = event.clientY - elemBound.y
+
+                const mouse3D = new THREE.Vector3((x / elemBound.width) * 2 - 1,
+                    -(y / elemBound.height) * 2 + 1,
+                    0.5)
+
+                const raycaster = new THREE.Raycaster()
+                raycaster.setFromCamera(mouse3D, this.camera3D)
+                var intersects = raycaster.intersectObjects(this.scene3D.children)
+                // if (intersects.length > 0) {
+                //     intersects[0].object.material.color.setHex(Math.random() * 0xffffff)
+                // }
+                if (typeof cb === 'function') cb({intersects})
+            }
+
+
+        }
+
+
         return this
+    }
+
+    img3D() {
+        if (!this.renderer3D) return null
+        var strMime = "image/jpeg"
+        return this.renderer3D.domElement.toDataURL(strMime)
     }
 
 
@@ -724,7 +799,6 @@ export class GraphicEngine {
         }
 
         if (model.type === 'THREEJS_OBJ'){
-            // console.log('askasdjkasjdkasjdkasjldjkl',model.name);
             model.content.name = model.name
             this.scene3D.add(model.content)
             return
@@ -864,6 +938,76 @@ export class GraphicEngine {
                 cube.material.opacity = opacity
             }
             model.graphicOptions.updated = true
+
+
+            // if (model.removed) {
+            //     // Remove from 3D scene
+            //     this.scene3D.remove(cube)
+            //     model.removed = undefined
+            //     let selectBox = this.scene3D.getObjectByName(model.id + '_selectBox')
+            //     if (selectBox) this.scene3D.remove(selectBox)
+            //
+            // } else
+            if (model.selected) {
+                let selectBox = this.scene3D.getObjectByName(model.id + '_selectBox')
+                if (!selectBox) {
+                    selectBox = new THREE.BoxHelper(cube, 0xffff00)
+                    selectBox.name = model.id + '_selectBox'
+                    this.scene3D.add(selectBox)
+                }
+
+                //
+                // const boundsFullSize = model.boundsFull.size
+                // const boundsFullPos = model.boundsFull.position
+                // if (selectBox) {
+                //     const scaleX = (model.boundsFull.size.x * 2) / selectBox.geometry.parameters.width
+                //     const scaleY = (model.boundsFull.size.y * 2) / selectBox.geometry.parameters.height
+                //     const scaleZ = (model.boundsFull.size.z * 2) / selectBox.geometry.parameters.depth
+                //     selectBox.scale.set(scaleX, scaleY, scaleZ)
+                //     // cubeBoundsFull.position.set(model.boundsFull.position.x, model.boundsFull.position.y, model.boundsFull.position.z)
+                //     selectBox.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
+                // } else {
+                //     selectBox = new THREE.BoxHelper( cube, 0xffff00 );
+                //     selectBox.name = model.id + '_selectBox'
+                //     this.scene3D.add(selectBox)
+                // }
+            } else {
+                let selectBox = this.scene3D.getObjectByName(model.id + '_selectBox')
+                if (selectBox) this.scene3D.remove(selectBox)
+            }
+
+            // if (model.selected) {
+            //     let selectBox = this.scene3D.getObjectByName(model.id + '_selectBox')
+            //
+            //     const boundsFullSize = model.boundsFull.size //.multiply(this.scale)
+            //     const boundsFullPos = model.boundsFull.position
+            //
+            //     if (selectBox) {
+            //         const scaleX = (model.boundsFull.size.x * 2) / selectBox.geometry.parameters.width
+            //         const scaleY = (model.boundsFull.size.y * 2) / selectBox.geometry.parameters.height
+            //         const scaleZ = (model.boundsFull.size.z * 2) / selectBox.geometry.parameters.depth
+            //         selectBox.scale.set(scaleX, scaleY, scaleZ)
+            //         // cubeBoundsFull.position.set(model.boundsFull.position.x, model.boundsFull.position.y, model.boundsFull.position.z)
+            //         selectBox.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
+            //     } else {
+            //         const boundsFullGeometry = new THREE.BoxGeometry(boundsFullSize.x * 2 + 50, boundsFullSize.y * 2  + 50, boundsFullSize.z * 2 + 50)
+            //
+            //         const boundsFullMaterial = new THREE.MeshPhongMaterial({
+            //             color: model.childs.length ? '#cdffcb' : '#ffa2a5',
+            //             opacity: model.childs.length ? 0.2 : 0.5,
+            //             transparent: true,
+            //         })
+            //         selectBox = new THREE.Mesh(boundsFullGeometry, boundsFullMaterial)
+            //         selectBox.name = model.id + '_selectBox'
+            //         selectBox.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
+            //         this.scene3D.add(selectBox)
+            //     }
+            // } else {
+            //     let selectBox = this.scene3D.getObjectByName(model.id + '_selectBox')
+            //     console.log('this.scene3D.children', this.scene3D.children)
+            //     this.scene3D.remove(selectBox)
+            //     // if (selectBox) this.scene3D =
+            // }
         }
 
 
@@ -1028,6 +1172,24 @@ export class GraphicEngine {
     }
 
     renderScene3D_(scene) {
+
+        if (scene.needUpdate) {
+            const obj_ids = scene.objects.map(one => one.id)
+            this.scene3D.children.forEach(one => {
+                if (one.name && !obj_ids.includes(one.name)) {
+                    one.toRemove = true
+                }
+            })
+
+            const toRemove = this.scene3D.children.filter(one => one.toRemove)
+            toRemove.forEach(one => {
+                this.scene3D.remove(one)
+                this.scene3D.children.forEach(child => {
+                    if (child.name.includes(one.name)) this.scene3D.remove(child)
+                })
+            })
+            scene.needUpdate = false
+        }
 
         scene.objects.forEach(model => {
             if (model.parent) return

@@ -1385,7 +1385,11 @@ export class Model {
         this.supportGroups = this.isSupport
             ? obj.supportGroups
             || (() => {
-                const size = this.content && this.content.size ? this.content.size : this.bounds.size
+                let sizeCorrected = this.content && this.content.size ? this.content.size : this.bounds.size
+
+                // sizeCorrected = sizeCorrected.add(new Vector3(-this.position.x,-this.position.y,-this.position.z))
+                // sizeCorrected = sizeCorrected.subtract(this.position)
+                // if (this.content) sizeCorrected = sizeCorrected.subtract(this.content.position)
 
                 const supportOffset = obj.supportOffset || 100
                 const supportOffsetX = obj.supportOffsetX || supportOffset || 100
@@ -1396,10 +1400,10 @@ export class Model {
                         name: 'MAIN',
                         modelId: this.id,
                         items: [
-                            new Point3D(size.x - supportOffsetX, -size.y, size.z - supportOffsetZ),
-                            new Point3D(size.x - supportOffsetX, -size.y, -size.z + supportOffsetZ),
-                            new Point3D(-size.x + supportOffsetX, -size.y, -size.z + supportOffsetZ),
-                            new Point3D(-size.x + supportOffsetX, -size.y, size.z - supportOffsetZ)
+                            new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y, sizeCorrected.z - supportOffsetZ),
+                            new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y, -sizeCorrected.z + supportOffsetZ),
+                            new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y, -sizeCorrected.z + supportOffsetZ),
+                            new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y, sizeCorrected.z - supportOffsetZ)
                         ]
                     },
 

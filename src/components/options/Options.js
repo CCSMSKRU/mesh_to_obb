@@ -94,8 +94,9 @@ export class Options extends Component {
             if ($target.data('name') === 'rotation') return this.defaultSteps.rotation = +$target.val()
         } else {
             const val = ($target.data('type') === 'option_switch')
-                ? $target.val() === 'on'
+                ? !$target.parent('label').hasClass('is-checked')
                 : $target.val()
+            console.log('val', val, $target.val(), $target)
             return this.$emit(`options:${$target.data('category')}_${$target.data('name')}`, {value: val})
         }
         // else if ($target.data('category') === 'boxContainerPosition') {
