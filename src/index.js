@@ -5,6 +5,7 @@
  */
 
 import './scss/index.scss'
+import 'material-design-lite'
 import {App} from '@/components/app/App'
 import {Header} from '@/components/header/Header'
 import {Toolbar} from '@/components/toolbar/Toolbar'
