@@ -1411,6 +1411,7 @@ export class Model {
 
         this.isPlatform = obj.isPlatform // On this plane can be placed transport (another objects)
         this.isRamp = obj.isRamp // On this plane transport can move up
+        this.isSteepRamp = obj.isSteepRamp // On this plane transport can move up
 
         this.saveOrigState()
 
