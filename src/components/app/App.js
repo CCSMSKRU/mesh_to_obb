@@ -227,6 +227,11 @@ export class App {
                 this.project.selectedModel.isRamp = e.value
             }
         })
+        this.$on('options:supportPlatformRamp_isSteepRamp', (e) => {
+            if (this.project.selectedModel) {
+                this.project.selectedModel.isSteepRamp = e.value
+            }
+        })
 
 
         this.$on('options:applyDefaultSteps', (e) => {
