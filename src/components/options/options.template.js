@@ -71,11 +71,27 @@ export function createOptions(data = {}, options = {}) {
                         name: 'isPlatform',
                         title: 'isPlatform',
                         checked: model ? model.isPlatform : ''
-                    },
+                    }
+                ],
+            },
+            isRamp: {
+                func: createSwitch,
+                options: {
+                    datas: [
+                        'data-type="option_switch"',
+                        'data-category="supportPlatformRamp"',
+                    ],
+                },
+                items: [
                     {
                         name: 'isRamp',
                         title: 'isRamp',
                         checked: model ? model.isRamp : ''
+                    },
+                    {
+                        name: 'isSteepRamp',
+                        title: 'isSteepRamp',
+                        checked: model ? model.isSteepRamp : ''
                     },
                 ],
             },
@@ -387,6 +403,9 @@ export function createOptions(data = {}, options = {}) {
                     </div>
                     <div class="flex between">
                         ${createItems(blocks.selected.isPlatform)}
+                    </div>
+                    <div class="flex between">
+                        ${createItems(blocks.selected.isRamp)}
                     </div>
                     
             </div>
