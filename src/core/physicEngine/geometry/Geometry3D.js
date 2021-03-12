@@ -4,8 +4,10 @@ import {Matrix3} from '@core/physicEngine/geometry/Matrix3'
 import {Matrix4} from '@core/physicEngine/geometry/Matrix4'
 import {v1 as uuidv1} from 'uuid'
 import * as THREE from 'three'
-import MyError, {UserError} from '@core/error'
+import MyError, {isError, UserError, UserOk} from '@core/error'
 import {cloneObj} from '@core/functions'
+import {$} from "@core/jquery.extends"
+import {PhysicEngine} from "@core/physicEngine/PhysicEngine"
 
 export class Geometry3D {
     constructor(props) {
@@ -80,8 +82,8 @@ export class Ray {
     }
 
     normalizeDirection() {
-        // не совсем понятно, что функция должна делать: возвращать нормализованное направление или у данного луча нормализовывать направление
-        return this.direction.normalize()
+        this.direction = this.direction.normalize()
+        return this
     }
 
     pointOn(point) {
@@ -157,14 +159,29 @@ export class Sphere {
 
         // No collision has happened
         if (rSq - (eSq - (a * a)) < 0) {
-            return -1 // -1 is invalid.
+            return false // -1 is invalid.
         }
-        // Ray starts inside the sphere
-        else if (eSq < rSq) {
-            return a + f // Just reverse direction
+        // outResult->t = t;
+        // outResult->hit = true;
+        // outResult->point = ray.origin + ray.direction * t;
+        // outResult->normal = Normalized(outResult->point
+        //     - sphere.position);
+        // Не проверено
+        const t = (eSq < rSq) ? a + f : a - f
+        const point = ray.origin.add(ray.direction.multiplyS(t))
+        const normal = point.subtract(this.position)
+        return {
+            t,
+            hit: true,
+            point: point,
+            normal
         }
-        // else Normal intersection
-        return a - f
+        // // Ray starts inside the sphere
+        // else if (eSq < rSq) {
+        //     return a + f // Just reverse direction
+        // }
+        // // else Normal intersection
+        // return a - f
     }
 
     linetest(line) {
@@ -251,6 +268,7 @@ export class AABB {
     aabbIn(aabb) {
         const aMin = this.getMin()
         const aMax = this.getMax()
+        if (!aabb) debugger
         const bMin = aabb.getMin()
         const bMax = aabb.getMax()
 
@@ -301,9 +319,6 @@ export class AABB {
         const min = this.getMin()
         const max = this.getMax()
 
-        // NOTE: Any component of direction could be 0!
-        // to avoid a division by 0, you need to add
-        // additional safety checks.
         const t1 = (min.x - ray.origin.x) / ray.direction.x
         const t2 = (max.x - ray.origin.x) / ray.direction.x
         const t3 = (min.y - ray.origin.y) / ray.direction.y
@@ -311,6 +326,7 @@ export class AABB {
         const t5 = (min.z - ray.origin.z) / ray.direction.z
         const t6 = (max.z - ray.origin.z) / ray.direction.z
 
+        console.log('AABB raycast')
         const tmin = Math.max(
             Math.max(
                 Math.min(t1, t2),
@@ -326,10 +342,35 @@ export class AABB {
             Math.max(t5, t6)
         )
 
-        if (tmax < 0) return -1
-        if (tmin > tmax) return -1
-        if (tmin < 0) return tmax
-        return tmin
+        if (tmax < 0) return false
+        if (tmin > tmax) return false
+
+        // Не проверено
+        const t = (tmin < 0) ? tmax : tmin
+        const t2_ = (tmin < 0) ? tmin : tmax
+        const point = ray.origin.add(ray.direction.multiplyS(t))
+        let normal
+        const normals = [
+            new Vector3(-1, 0, 0), new Vector3(1, 0, 0),
+            new Vector3(0, -1, 0), new Vector3(0, 1, 0),
+            new Vector3(0, 0, -1), new Vector3(0, 0, 1),
+        ]
+        const t_arr = [t1, t2, t3, t4, t5, t6]
+        for (let i = 0; i < 6; i++) {
+            if (CMP(t, t_arr[i])) {
+                normal = normals[i].normalize()
+            }
+        }
+        return {
+            t,
+            t2: t2_,
+            hit: true,
+            point,
+            normal
+        }
+
+        // if (tmin < 0) return tmax
+        // return tmin
     }
 
     linetest(line) {
@@ -449,6 +490,7 @@ export class OBB extends AABB {
     }
 
     raycast(ray) {
+
         const o = this.orientation.asArray
         const size = this.size.asArray
         // X, Y and Z axis of OBB
@@ -468,16 +510,18 @@ export class OBB extends AABB {
         )
         const t = [0, 0, 0, 0, 0, 0]
 
+        const fAsArray = f.asArray
+        const eAsArray = e.asArray
 
         for (let i = 0; i < 3; ++i) {
-            if (CMP(f[i], 0)) {
-                if (-e[i] - size[i] > 0 || -e[i] + size[i] < 0) {
-                    return -1
+            if (CMP(fAsArray[i], 0)) {
+                if (-eAsArray[i] - size[i] > 0 || -eAsArray[i] + size[i] < 0) {
+                    return false
                 }
-                f[i] = 0.00001 // Avoid div by 0!
+                fAsArray[i] = 0.00001 // Avoid div by 0!
             }
-            t[i * 2 + 0] = (e[i] + size[i]) / f[i] // min
-            t[i * 2 + 1] = (e[i] - size[i]) / f[i] // max
+            t[i * 2 + 0] = (eAsArray[i] + size[i]) / fAsArray[i] // min
+            t[i * 2 + 1] = (eAsArray[i] - size[i]) / fAsArray[i] // max
         }
 
         const tmin = Math.max(
@@ -492,10 +536,37 @@ export class OBB extends AABB {
                 Math.max(t[2], t[3])),
             Math.max(t[4], t[5])
         )
-        if (tmax < 0) return -1
-        if (tmin > tmax) return -1
-        if (tmin < 0) return tmax
-        return tmin
+        if (tmax < 0) return false
+        if (tmin > tmax) return false
+
+        // Не проверено
+        const t_res = (tmin < 0) ? tmax : tmin
+        const t_res2 = (tmin < 0) ? tmin : tmax
+        const point = ray.origin.add(ray.direction.multiplyS(t))
+        let normal
+        const normals = [
+            X,			// +x
+            X.multiplyS(-1),	// -x
+            Y,			// +y
+            Y.multiplyS(-1),	// -y
+            Z,			// +z
+            Z.multiplyS(-1)	// -z
+        ]
+        for (let i = 0; i < 6; i++) {
+            if (CMP(t, t[i])) {
+                normal = normals[i].normalize()
+            }
+        }
+        return {
+            t: t_res,
+            t2: t_res2,
+            hit: true,
+            point,
+            normal
+        }
+
+        // if (tmin < 0) return tmax
+        // return tmin
     }
 
     linetest(line) {
@@ -551,10 +622,23 @@ export class Plane {
         let nd = ray.direction.dot(this.normal)
         let pn = ray.origin.dot(this.normal)
 
-        if (nd >= 0) return -1
+        if (nd >= 0) return false
         const t = (this.distance - pn) / nd
-        if (t >= 0) return t
-        return -1
+
+        if (t < 0) return false
+
+        const point = ray.origin.add(ray.direction.multiplyS(t))
+        const normal = this.normal.normalize()
+
+        return {
+            t,
+            hit: true,
+            point,
+            normal
+        }
+
+        // if (t >= 0) return t
+        // return -1
     }
 
     linetest(line) {
@@ -788,20 +872,29 @@ export class Triangle {
 
     raycast(ray) {
         const plane = this.fromTriangle()
-        const t = plane.raycast(ray)
-        if (t < 0) {
-            return t
-        }
+        const raycast_res = plane.raycast(ray)
+        if (!raycast_res) return false
+
+        const t = raycast_res.t
         const result = ray.origin.add(ray.direction.multiplyS(t))
 
         const barycentric = result.barycentric(this)
         if (barycentric.x >= 0 && barycentric.x <= 1 &&
             barycentric.y >= 0 && barycentric.y <= 1 &&
             barycentric.z >= 0 && barycentric.z <= 1) {
-            return t
+
+            const normal = plane.normal.normalize()
+
+            return {
+                t,
+                hit: true,
+                point: result,
+                normal
+            }
+            // return t
         }
 
-        return -1
+        return false
     }
 
     linetest(line) {
@@ -1326,20 +1419,21 @@ export class Model {
         const rotation = rotation_ ? new Vector3(rotation_._x, rotation_._y, rotation_._z) : null
 
         if (obj.states && Array.isArray(obj.states)) {
-            obj.states.map(state => {
-                const obj = {...state}
-                obj.editMode = false // не важно что сохранено
+            obj.states = obj.states.map(state => {
+                const objRes = {...state}
+                objRes.editMode = false // не важно что сохранено
                 if (state.position) {
                     state.position = new Vector3(state.position._x, state.position._y, state.position._z)
-                    obj.position = new Vector3(...state.position.asArray)
+                    objRes.position = new Vector3(...state.position.asArray)
                 }
                 if (state.rotation) {
                     state.rotation = new Vector3(state.rotation._x, state.rotation._y, state.rotation._z)
-                    obj.rotation = new Vector3(...state.rotation.asArray)
+                    objRes.rotation = new Vector3(...state.rotation.asArray)
                 }
-                return obj
+                return objRes
             })
         }
+
 
         const model = new Model({...obj, content, position, rotation})
 
@@ -1389,29 +1483,109 @@ export class Model {
                 let sizeCorrected = this.content && this.content.size ? this.content.size : this.bounds.size
                 if (this.content) sizeCorrected = sizeCorrected.subtract(this.content.position)
 
-                const supportOffset = obj.supportOffset || 100
+                // const supportOffset = obj.supportOffset || 100
+                // const supportOffsetX = obj.supportOffsetX || supportOffset || 100
+                // const supportOffsetZ = obj.supportOffsetZ || supportOffset || 100
+                // const supportOffsetY = obj.supportOffsetY || -300
+
+                const supportOffset = obj.supportOffset || 0
                 const supportOffsetX = obj.supportOffsetX || supportOffset || 100
                 const supportOffsetZ = obj.supportOffsetZ || supportOffset || 100
+                const supportOffsetY = obj.supportOffsetY || -300
 
-                return [
+                const groups = []
+                const dic = [
                     {
-                        name: 'MAIN',
-                        modelId: this.id,
+                        name: 'FRONT_LEFT',
                         items: [
-                            new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y, sizeCorrected.z - supportOffsetZ),
-                            new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y, -sizeCorrected.z + supportOffsetZ),
-                            new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y, -sizeCorrected.z + supportOffsetZ),
-                            new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y, sizeCorrected.z - supportOffsetZ)
+                            {
+                                id: uuidv1(),
+                                point: new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
+                            },
+                            // {
+                            //     id: uuidv1(),
+                            //     point: new Point3D(sizeCorrected.x, -sizeCorrected.y, -sizeCorrected.z + supportOffsetZ),
+                            // }
                         ]
                     },
-
+                    {
+                        name: 'FRONT_RIGHT',
+                        items: [
+                            {
+                                id: uuidv1(),
+                                point: new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ),
+                            },
+                            // {
+                            //     id: uuidv1(),
+                            //     point: new Point3D(sizeCorrected.x, -sizeCorrected.y, sizeCorrected.z - supportOffsetZ),
+                            // }
+                        ]
+                    },
+                    {
+                        name: 'REAR_LEFT',
+                        items: [
+                            {
+                                id: uuidv1(),
+                                point: new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ)
+                            },
+                            // {
+                            //     id: uuidv1(),
+                            //     point: new Point3D(-sizeCorrected.x, -sizeCorrected.y, sizeCorrected.z - supportOffsetZ)
+                            // }
+                        ]
+                    },
+                    {
+                        name: 'REAR_RIGHT',
+                        items: [
+                            {
+                                id: uuidv1(),
+                                point: new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
+                            },
+                            // {
+                            //     id: uuidv1(),
+                            //     point: new Point3D(-sizeCorrected.x, -sizeCorrected.y, -sizeCorrected.z + supportOffsetZ),
+                            // }
+                        ]
+                    }
                 ]
+
+                for (let i = 0; i < 4; i++) {
+
+                    // const items = []
+                    // for (let j = 0; j < 2; j++) {
+                    //     items.push(dic[i].items[0])
+                    // }
+                    groups.push({
+                        id: uuidv1(),
+                        name: dic[i].name,
+                        modelId: this.id,
+                        items: dic[i].items
+                        // items: items
+                    })
+                }
+
+                return groups
+
+                // return [
+                //     {
+                //         name: 'MAIN',
+                //         modelId: this.id,
+                //         items: [
+                //             new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ),
+                //             new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
+                //             new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
+                //             new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ)
+                //         ]
+                //     },
+                // ]
             })()
             : null
 
         this.isPlatform = obj.isPlatform // On this plane can be placed transport (another objects)
         this.isRamp = obj.isRamp // On this plane transport can move up
         this.isSteepRamp = obj.isSteepRamp // On this plane transport can move up
+
+        this.rollbacks = {}
 
         this.saveOrigState()
 
@@ -1486,6 +1660,7 @@ export class Model {
             let aabb = this._content.getBounds()
 
             let size = aabb.size
+
             let position = world.multiplyPoint(aabb.position)
             let orientation = world.cut(3, 3)
             const local = new OBB(position, size, orientation).getBounds()
@@ -1506,6 +1681,30 @@ export class Model {
                 if (max.y < oneMax.y) max.y = oneMax.y
                 if (max.z < oneMax.z) max.z = oneMax.z
             })
+
+
+            // console.log('this.supportGroupsAll', this.supportGroupsAll)
+            this.supportGroupsAll.forEach(group => {
+                group.items.forEach(one => {
+                    if (min.x > one.point.x) min.x = one.point.x
+                    if (min.y > one.point.y) min.y = one.point.y
+                    if (min.z > one.point.z) min.z = one.point.z
+                    if (max.x < one.point.x) max.x = one.point.x
+                    if (max.y < one.point.y) max.y = one.point.y
+                    if (max.z < one.point.z) max.z = one.point.z
+                })
+                // const local = one.boundsFull
+                // const oneMin = local.getMin()
+                // const oneMax = local.getMax()
+                //
+                // if (min.x > oneMin.x) min.x = oneMin.x
+                // if (min.y > oneMin.y) min.y = oneMin.y
+                // if (min.z > oneMin.z) min.z = oneMin.z
+                // if (max.x < oneMax.x) max.x = oneMax.x
+                // if (max.y < oneMax.y) max.y = oneMax.y
+                // if (max.z < oneMax.z) max.z = oneMax.z
+            })
+
             this._boundsFull = AABB.fromMinMax(min, max)
         }
         // console.log(this._boundsFull.size);
@@ -1595,7 +1794,13 @@ export class Model {
             ? this.supportGroups.map(one => {
                 return {
                     ...one,
-                    items: one.items.map(point => world.multiplyPoint(point))
+                    items: one.items.map(item => {
+                        const newItem = {
+                            ...item,
+                            point: world.multiplyPoint(item.point)
+                        }
+                        return newItem
+                    })
                 }
             })
             : []
@@ -1761,14 +1966,31 @@ export class Model {
         this.clearBoundsFull()
     }
 
+    getAllChilds(model) {
+        const res = model ? [model] : []
+        if (!model) model = this
+        if (Array.isArray(model.childs)) model.childs.forEach(one => res.push(...this.getAllChilds(model.childs)))
+        return res
+    }
+
     getWorldMatrix() {
         let translation = new Matrix4().translation(this.position)
         let rotation = new Matrix4().rotation(...this.rotation.asArray)
 
         let localMat = rotation.multiply(translation)
 
-        let parentMat = this.parent ? this.parent.getWorldMatrix() : new Matrix4()
-        return localMat.multiply(parentMat)
+        let parentMat = this.parent ? this.parent.getWorldMatrix() : null
+
+        // if (this.parent){
+        //     localMat = localMat.multiply(this.parent.getWorldMatrix())
+        // } else {
+        //     localMat = localMat.multiply(new Matrix4(1, 0, 0, 0,
+        //         0, 1, 0, 0,
+        //         0, 0, 1, 0,
+        //         0, 0, 0, 1))
+        // }
+
+        return parentMat ? localMat.multiply(parentMat) : localMat
     }
 
     getOBB() {
@@ -1879,7 +2101,6 @@ export class Model {
         //     this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
         //     || this.addState(this.selectedState.name, this.selectedState.sysname)
 
-        // debugger;
         if (this.position_orig && !this.position.equal(this.position_orig)) changes['position'] = new Vector3(...this.position.asArray)
         if (this.rotation_orig && !this.rotation.equal(this.rotation_orig)) changes['rotation'] = new Vector3(...this.rotation.asArray)
 
@@ -1887,7 +2108,7 @@ export class Model {
         // if (state.rotation && !this.rotation.equal(state.rotation)) changes['rotation'] = new Vector3(...this.rotation.asArray)
         // Object.keys(changes).forEach(key => state[key] = changes[key])
 
-        let state =  this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
+        let state = this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
         if (Object.keys(changes).length) {
             // const state =
             //     this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
@@ -1897,7 +2118,7 @@ export class Model {
                 // this[`${key}_orig`] = changes[key]
                 state[key] = changes[key]
             })
-        } else if (state){
+        } else if (state) {
             state['position'] = undefined
             state['rotation'] = undefined
         }
@@ -1928,6 +2149,8 @@ export class Model {
         this.position = state_obj.position || this.position_orig || this._position
         this.rotation = state_obj.rotation || this.rotation_orig || this._rotation
 
+        this.updatePosition()
+
 
         if (!this.parent) {
             // Снимем флаг, что сейчас идет переход в определенное состояние
@@ -1946,10 +2169,14 @@ export class Model {
         const inv = world.inverse()
 
         const origin = inv.multiplyPoint(ray.origin)
-        const direction = inv.multiplyVector(ray.origin)
+        const direction = inv.multiplyVector(ray.direction)
         const local = new Ray(origin, direction).normalizeDirection()
-        if (this.content) return this.content.meshRay(local)
-        return -1
+        // console.log('LLLLSldldsLL', origin, direction, local)
+        if (this.content) {
+            if (this.content instanceof Mesh) return this.content.meshRay(local)
+            return this.content.raycast(local)
+        }
+        return false
     };
 
     linetest(line) {
@@ -1988,7 +2215,19 @@ export class Model {
 
     modelOBB(obb) {
         const world = this.getWorldMatrix()
-        const inv = world.inverse()
+        let inv = world.inverse()
+
+        // const inv2 = inv.multiply(new Matrix4(
+        //     1, 0, 0, 0,
+        //     0, -1, 0, 0,
+        //     0, 0, -1, 0,
+        //     0, 0, 0, 1
+        // ))
+        //
+        // console.log('world inv inv2', world.asArray, inv.asArray, inv2.asArray)
+        //
+        // inv = inv2
+
 
         let size = obb.size
         let position = inv.multiplyPoint(obb.position)
@@ -2032,10 +2271,12 @@ export class Model {
         return false
     };
 
-    checkOn(platformModel) {
-        if (!this.supportGroupsAll.length) throw new MyError('Model must has isSupport flag', this)
-        // Все точки у всех опорных блоков должны быть вблизи от поверхности isPlatform
 
+    // Будет корректно работать, ели до этого была вызвана applySupportReaction
+    // или как либо еще применена supportItemRays
+    checkOn(platformModel) {
+        if (!this.supportGroupsAll.length) return new UserError('Model must has isSupport flag', {model: this})
+        // Все точки у всех опорных блоков должны быть вблизи от поверхности isPlatform
 
         // Union by group.name
         const groups = {}
@@ -2044,74 +2285,47 @@ export class Model {
             groups[group.name].items.push(...group.items)
         })
 
-        let isOnOne = false
+        const checkOnAliasArr = []
+
         Object.keys(groups).forEach(key => {
-            const support = groups[key]
+            const group = groups[key]
 
-            if (isOnOne) return
+            group.isOnePointHasSupport = false // Хотя бы одна точка имеет опору
 
-            let isOnCurrent
-            for (const platform of platformModel.platforms) {
-                isOnCurrent = true
-                for (const point of support.items) {
-                    // const pointCorrected = point.add(support.position).add(support.offset)
-                    // const closest = platform.box.closestPoint(pointCorrected)
-                    // const line = new Line(pointCorrected, closest)
+            group.items.forEach(item => {
+                if (group.isOnePointHasSupport) return
 
-                    const closest = platform.closestPoint(point)
-                    const line = new Line(point, closest)
+                // Точки касающиеся любой поверхности
+                const itemsOnPlane = !item.supportReaction && item.raysDown
+                    ? item.raysDown.filter(one => one.object)
+                    : null
 
-                    // const ln = line.length()
-                    // console.log(line);
-                    if (line.length() >= 60) {
-                        isOnCurrent = false
-                        break
-                    }
+                // Соотавляем alias из касающихся точек
+                if (itemsOnPlane && itemsOnPlane.length){
+                    checkOnAliasArr.push(itemsOnPlane.map(one => one.object.id).join('='))
                 }
-                if (isOnCurrent) {
-                    break
+
+                // Точки касающиеся поверхности isPlatform
+                const itemsOnPlatformPlane = itemsOnPlane
+                    ? itemsOnPlane.filter(one =>one.object.isPlatform)
+                    : null
+
+                if (itemsOnPlatformPlane && itemsOnPlatformPlane.length) {
+                    group.isOnePointHasSupport = true
                 }
-            }
-            isOnOne = isOnCurrent
+            })
         })
 
-        return isOnOne
-
-
-        // let isOnOne
-        // this.supports.forEach(support=>{
-        //     if (isOnOne) return
+        this._checkOnAlias = checkOnAliasArr.join('_')
         //
-        //     let isOnCurrent;
-        //     for (const platform of platformModel.platforms) {
-        //         isOnCurrent = true
-        //         for (const point of support.contactItems) {
-        //             const pointCorrected = point.add(support.position).add(support.offset)
-        //             const closest = platform.box.closestPoint(pointCorrected)
-        //             const line = new Line(pointCorrected, closest)
-        //             const ln = line.length()
-        //             if (line.length() >= 30) {
-        //                 isOnCurrent = false
-        //                 break;
-        //             }
-        //         }
-        //         if (isOnCurrent) {
-        //             break;
-        //         }
-        //     }
-        //     isOnOne = isOnCurrent
-        //     // platformObjectPos.platforms.forEach(platform=>{
-        //     //     const isNear = support.contactItems.map(point=>{
-        //     //         const pointCorrected = point.add(support.position).add(support.offset)
-        //     //         const closest = platform.box.closestPoint(pointCorrected)
-        //     //         const line = new Line(pointCorrected, closest)
-        //     //         return (line.length() < 30)
-        //     //     })
-        //     //
-        //     // })
-        // })
-        // return isOnOne
+        // console.log('_checkOnAlias:', this._checkOnAlias)
+
+        const res = !Object.values(groups).filter(one => !one.isOnePointHasSupport).length
+
+        // console.log('checkOn==', res)
+        return res
     }
+
 
     /**
      * add vector to current position. All children will be moved too
@@ -2225,19 +2439,38 @@ export class Model {
         // }
     }
 
-    rotateX(val) {
+    rotateToX(val) {
         const diff = val - this._rotation.x
         this.rotate(new Vector3(diff, 0, 0))
     }
 
-    rotateY(val) {
+    rotateToY(val) {
         const diff = val - this._rotation.y
         this.rotate(new Vector3(0, diff, 0))
     }
 
-    rotateZ(val) {
+    rotateToZ(val) {
         const diff = val - this._rotation.z
         this.rotate(new Vector3(0, 0, diff))
+    }
+
+    rotateTo(vector) {
+        const diffX = vector.x - this._rotation.x
+        const diffY = vector.y - this._rotation.y
+        const diffZ = vector.z - this._rotation.z
+        this.rotate(new Vector3(diffX, diffY, diffZ))
+    }
+
+    rotateX(val) {
+        this.rotate(new Vector3(val, 0, 0))
+    }
+
+    rotateY(val) {
+        this.rotate(new Vector3(0, val, 0))
+    }
+
+    rotateZ(val) {
+        this.rotate(new Vector3(0, 0, val))
     }
 
     setGraphicOption(key, val, childs) {
@@ -2249,6 +2482,73 @@ export class Model {
     setField(key, val, childs) {
         this[key] = val
         if (childs) this.childs.forEach(one => one.setField(key, val, childs))
+    }
+
+    async prepareImg3D(state_alias, options = {}) {
+
+        const modelForImg3D = Model.fromOBJ(this.getForStore())
+
+        if (state_alias) modelForImg3D.toState(state_alias)
+
+        return new Promise((res, rej) => {
+            const width = options.width || 600
+            const height = options.height || 350
+            const container = $.create('div', 'transportPic').width(width).height(height)
+            // const pEngine = new pE
+            const pEngine = new PhysicEngine()
+            const scene = pEngine.createScene()
+
+            scene.addModel(modelForImg3D)
+
+            const cameraPosition = new Vector3(2000, 8000, 10000)
+            const cameraTarget = modelForImg3D.boundsFull.position
+            // debugger;
+
+            pEngine.init3D({
+                ...{
+                    width: width,
+                    height: height,
+                    css: {
+                        backgroundColor: '#fff',
+                        // border: '1px solid'
+                    },
+                    cameraPosition,
+                    cameraTarget,
+                    // clearColor:0x000000,
+                    axesHelper: true,
+                    // drawBounds: true,
+                    drawSupports: true,
+                    preserveDrawingBuffer: true
+                }, ...options
+            }, container)
+
+            pEngine.renderScene3D(scene)
+            setTimeout(() => {
+                const _img3D = pEngine.img3D()
+                pEngine.stopRenderScene3D()
+                // console.log('_img3D', _img3D)
+                res(_img3D)
+            }, 0)
+        })
+    }
+
+    /**
+     * Return Promise first time. Next calls return base64
+     * @param state_alias
+     * @param options
+     * @returns {Promise<*>|*}
+     */
+    img3D(state_alias, options = {}) {
+        if (!this.images3D) this.images3D = {}
+        const alias = state_alias || '_DEFAULT_'
+        if (this.images3D[alias]) return this.images3D[alias]
+        const imgPromise = this.prepareImg3D(state_alias, options)
+        imgPromise.then(res => {
+            this.images3D[alias] = res
+        })
+        // this.images3D[alias] = await imgPromise
+        // console.log('this.images3D[alias]', this.images3D[alias] instanceof Promise)
+        return imgPromise
     }
 
 

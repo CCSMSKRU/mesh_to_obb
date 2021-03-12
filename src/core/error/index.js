@@ -37,6 +37,11 @@ export function UserOk(message, params){
 }
 
 
+export function isError(error){
+    return error instanceof MyError
+        || error instanceof UserError
+}
+
 
 //
 // exports.UserOk = UserOk;

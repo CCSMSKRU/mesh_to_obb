@@ -1,6 +1,6 @@
 import {$} from '@core/jquery.extends'
 import {Vector3} from '@core/physicEngine/geometry/Vector3'
-import {degToRad, Model, OBB} from '@core/physicEngine/geometry/Geometry3D'
+import {degToRad, Model, OBB, Plane} from '@core/physicEngine/geometry/Geometry3D'
 import * as THREE from 'three'
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
 import {Scene} from '@core/physicEngine/Scene/Scene'
@@ -33,11 +33,17 @@ export class GraphicEngine {
         this.inverseMultiplyVec = new Vector3(1, -1, -1)
         this.inverseMultiplyVecY = new Vector3(-1, 1, -1)
         this.inverseMultiplyVecZ = new Vector3(-1, -1, 1)
-        this.inverseMultiplyVec3D = new Vector3(1, 1, -1)
+        this.inverseMultiplyVec3D = new Vector3(1, 1, 1)
         // this.inverseAddVec = new Vector3(1, -1, 1)
         // this.scale = obj.scale || new Vector3(0.0265, 0.0265, 0.0265)
         this.scale = obj.scale || new Vector3(0.0265, 0.0265, 0.0265)
         this.offset = obj.offset || new Vector3(0, 0, 0)
+
+        const groundOptions = typeof obj.groundOptions === 'object' ?  obj.groundOptions : null
+
+        if (groundOptions){
+            this.ground = new Plane(groundOptions.normal || new Vector3(0, -1, 0), groundOptions.distance || 100000)
+        }
 
         this.listeners3D = []
 
@@ -490,6 +496,7 @@ export class GraphicEngine {
 
     createScene() {
         const scene = new Scene()
+        scene.pEngine = this
         this._scenes_.push(scene)
         return scene
     }
@@ -726,44 +733,46 @@ export class GraphicEngine {
 
     //////==RENDER=3D=======/////
 
-    addTo3DPhysicObject3D(physicObjectPos, parentPhysicObject) {
-
-        physicObjectPos.items.forEach(one => this.addTo3DPhysicObject3D(one, parentPhysicObject || physicObjectPos))
-
-        if (physicObjectPos.items.length) return
-
-        const graphicOptions = parentPhysicObject
-            ? {...parentPhysicObject.graphicOptions, ...physicObjectPos.graphicOptions}
-            : {...physicObjectPos.graphicOptions}
-
-        // let boxSize = physicObjectPos.size
-        // const boxPos = physicObjectPos.position.add(physicObjectPos.offset)
-
-        const boxSize = physicObjectPos.box.size //.multiply(this.scale)
-        const boxPos = physicObjectPos.box.position.multiply(this.inverseMultiplyVec3D)
-
-
-        const geometry = new THREE.BoxGeometry(boxSize.x * 2, boxSize.y * 2, boxSize.z * 2)
-        const material = new THREE.MeshLambertMaterial({color: graphicOptions.materialColor || '#0F0'})
-        const cube = new THREE.Mesh(geometry, material)
-        cube.name = physicObjectPos.id
-        cube.position.set(boxPos.x, boxPos.y, boxPos.z)
-
-        // https://jsfiddle.net/1qoev8jr/
-        // https://jsfiddle.net/eh5zqa4r/1/
-
-        const rotation = physicObjectPos.rotation ? physicObjectPos.rotation : null
-
-        if (rotation) {
-            cube.rotation.z = -degToRad(rotation.y)
-        }
-
-
-        this.scene3D.add(cube)
-
-        var axesHelper = new THREE.AxesHelper(50000)
-        this.scene3D.add(axesHelper)
-    }
+    // addTo3DPhysicObject3D(physicObjectPos, parentPhysicObject) {
+    //
+    //     physicObjectPos.items.forEach(one => this.addTo3DPhysicObject3D(one, parentPhysicObject || physicObjectPos))
+    //
+    //     if (physicObjectPos.items.length) return
+    //
+    //     const graphicOptions = parentPhysicObject
+    //         ? {...parentPhysicObject.graphicOptions, ...physicObjectPos.graphicOptions}
+    //         : {...physicObjectPos.graphicOptions}
+    //
+    //     // let boxSize = physicObjectPos.size
+    //     // const boxPos = physicObjectPos.position.add(physicObjectPos.offset)
+    //
+    //     const boxSize = physicObjectPos.box.size //.multiply(this.scale)
+    //     debugger;
+    //     const boxPos = physicObjectPos.box.position.multiply(this.inverseMultiplyVec3D)
+    //
+    //
+    //
+    //     const geometry = new THREE.BoxGeometry(boxSize.x * 2, boxSize.y * 2, boxSize.z * 2)
+    //     const material = new THREE.MeshLambertMaterial({color: graphicOptions.materialColor || '#0F0'})
+    //     const cube = new THREE.Mesh(geometry, material)
+    //     cube.name = physicObjectPos.id
+    //     cube.position.set(boxPos.x, boxPos.y, boxPos.z)
+    //
+    //     // https://jsfiddle.net/1qoev8jr/
+    //     // https://jsfiddle.net/eh5zqa4r/1/
+    //
+    //     const rotation = physicObjectPos.rotation ? physicObjectPos.rotation : null
+    //
+    //     if (rotation) {
+    //         cube.rotation.z = -degToRad(rotation.y)
+    //     }
+    //
+    //
+    //     this.scene3D.add(cube)
+    //
+    //     var axesHelper = new THREE.AxesHelper(50000)
+    //     this.scene3D.add(axesHelper)
+    // }
 
     addModelTo3D(model, topModel = {}) {
         if (model.type === 'OBJ'){
@@ -845,7 +854,8 @@ export class GraphicEngine {
             const supportsGroups = model.supportGroupsAll
             if (supportsGroups.length) {
                 supportsGroups.forEach(group => {
-                    group.items.forEach((point, index) => {
+                    group.items.forEach((item, index) => {
+                        const point = item.point
                         const geometry = new THREE.SphereGeometry(50, 32, 32)
                         const material = new THREE.MeshBasicMaterial({color: 0xff0000})
                         const sphere = new THREE.Mesh(geometry, material)
@@ -888,6 +898,18 @@ export class GraphicEngine {
             if (model.type === 'THREEJS_OBJ') this.addModelTo3D(model)
         })
 
+        if (this.ground instanceof Plane) {
+            const geometry = new THREE.PlaneGeometry( this.ground.distance, this.ground.distance, 1, 1 );
+            const material = new THREE.MeshBasicMaterial( {color: '#0000ff', side: THREE.DoubleSide} );
+            const plane = new THREE.Mesh( geometry, material );
+            plane.material.transparent = true
+            plane.material.opacity = 0.1
+            plane.rotateX( - Math.PI / 2);
+            this.scene3D.add(plane)
+        }
+
+
+
         this.renderScene3D_func = this.renderScene3D_.bind(this, scene)
         this.addToRequestAnimationFrame(this.renderScene3D_func)
     }
@@ -903,6 +925,7 @@ export class GraphicEngine {
         // if ()
 
         if (model.type === 'OBJ' || model.type === 'THREEJS_OBJ') return
+        if (model instanceof Plane) return
         if (model instanceof Model && !model.content) return
 
         if (!model.content) return
@@ -913,6 +936,7 @@ export class GraphicEngine {
             this.addModelTo3D(model)
             return this.renderModel3D(model)
         }
+
 
         if (model.content.sizeNeedUpdate){
             const scaleX = (model.content.size.x * 2) / cube.geometry.parameters.width
@@ -1078,7 +1102,8 @@ export class GraphicEngine {
             const supportsGroups = model.supportGroupsAll
             if (supportsGroups.length) {
                 supportsGroups.forEach(group => {
-                    group.items.forEach((point, index) => {
+                    group.items.forEach((item, index) => {
+                        const point = item.point
                         const sphere = this.scene3D.getObjectByName(`${model.id}_supportPoint_${group.name}_${index}`)
                         if (sphere) sphere.position.set(point.x, point.y, point.z)
                     })
@@ -1135,41 +1160,41 @@ export class GraphicEngine {
         model.childs.forEach(one=>this.renderModel3D(one, topModel))
     }
 
-    renderPhysicObject3D_(model) {
-
-
-        const graphicOptions = {}
-
-        const world = model.getWorldMatrix()
-        const inv = world.inverse()
-
-        const box = model.content
-
-        const boxSize = box.size //.multiply(this.scale)
-        const boxPos = box.position.multiply(this.inverseMultiplyVec3D)
-
-        const cube = this.scene3D.getObjectByName(physicObjectPos.id)
-
-        if (!cube) return
-
-        // console.log('a');
-
-
-        const rotation = physicObjectPos.rotation ? physicObjectPos.rotation : null
-
-        // if (rotation) {
-        //     cube.translateX(boxPos.x + boxSize.x / 2)
-        //     cube.rotation.z = -degToRad(rotation.y)
-        //     cube.translateX(-(boxPos.x + boxSize.x / 2))
-        //     // console.log(physicObjectPos);
-        //     cube.position.set(boxPos.x + boxSize.x / 2, boxPos.z + boxSize.z / 2, boxPos.y + boxSize.y / 2)
-        //     // cube.rotation.z += -degToRad(0.1)
-        // } else {
-        //     cube.position.set(boxPos.x + boxSize.x / 2, boxPos.z + boxSize.z / 2, boxPos.y + boxSize.y / 2)
+    // renderPhysicObject3D_(model) {
+    //
+    //
+    //     const graphicOptions = {}
+    //
+    //     const world = model.getWorldMatrix()
+    //     const inv = world.inverse()
+    //
+    //     const box = model.content
+    //
+    //     const boxSize = box.size //.multiply(this.scale)
+    //     const boxPos = box.position.multiply(this.inverseMultiplyVec3D)
+    //
+    //     const cube = this.scene3D.getObjectByName(physicObjectPos.id)
+    //
+    //     if (!cube) return
+    //
+    //     // console.log('a');
+    //
+    //
+    //     const rotation = physicObjectPos.rotation ? physicObjectPos.rotation : null
+    //
+    //     // if (rotation) {
+    //     //     cube.translateX(boxPos.x + boxSize.x / 2)
+    //     //     cube.rotation.z = -degToRad(rotation.y)
+    //     //     cube.translateX(-(boxPos.x + boxSize.x / 2))
+    //     //     // console.log(physicObjectPos);
+    //     //     cube.position.set(boxPos.x + boxSize.x / 2, boxPos.z + boxSize.z / 2, boxPos.y + boxSize.y / 2)
+    //     //     // cube.rotation.z += -degToRad(0.1)
+    //     // } else {
+    //     //     cube.position.set(boxPos.x + boxSize.x / 2, boxPos.z + boxSize.z / 2, boxPos.y + boxSize.y / 2)
+    //     // }
+    //
+    //     cube.position.set(boxPos.x, boxPos.y, boxPos.z)
         // }
-
-        cube.position.set(boxPos.x, boxPos.y, boxPos.z)
-    }
 
     renderScene3D_(scene) {
 

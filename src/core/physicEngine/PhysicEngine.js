@@ -1,10 +1,17 @@
 import {GraphicEngine} from '@core/physicEngine/GraphicEngine'
-import {Vector3} from '@core/physicEngine/geometry/Vector3'
 
 export class PhysicEngine extends GraphicEngine {
     constructor(obj) {
         super(obj)
     }
+
+    // setOn(scene, technicalModel, platformModel){
+    //     // checkCollision
+    //     // moveUpOrDownOnePoint -> inc counter of this point
+    //     // checkCollision -> if err - rollback and return
+    //     // CheckOn -> if isOn return
+    //     //
+    // }
 
     // moveAndCheck(scene, technicalModel, platformModel, options = {}){
     //     const startOnObject = technicalModel.checkOn(platformModel)
