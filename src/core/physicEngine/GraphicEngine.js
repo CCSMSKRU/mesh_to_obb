@@ -1130,7 +1130,7 @@ export class GraphicEngine {
                 if (axleLine) {
                     const positions = axleLine.geometry.attributes.position.array
                     // const newPositions = [...model.absolutePosition.asArray, ...boxPos.asArray]
-                    const newPositions = [axle.x, axle.y, -axle.width, axle.x, axle.y, axle.width]
+                    const newPositions = [axle.x, axle.y, boxPos.z - axle.width, axle.x, axle.y, boxPos.z + axle.width]
                     let needUpdate
                     for (const i in newPositions) {
                         if (positions[i] !== newPositions[i]) {
@@ -1144,8 +1144,8 @@ export class GraphicEngine {
                         color: 0x2FC24A
                     })
                     const points = []
-                    points.push(new THREE.Vector3(axle.x, axle.y, -axle.width))
-                    points.push(new THREE.Vector3(axle.x, axle.y, axle.width))
+                    points.push(new THREE.Vector3(axle.x, axle.y, boxPos.z + -axle.width))
+                    points.push(new THREE.Vector3(axle.x, axle.y, boxPos.z + axle.width))
 
                     const axleLineGeometry = new THREE.BufferGeometry().setFromPoints(points)
 
@@ -1176,7 +1176,7 @@ export class GraphicEngine {
                         //     }
                         // }
                         // wheelCircle.geometry.attributes.position.needsUpdate = needUpdate
-                        wheelMesh.position.set(axle.x, axle.y, z)
+                        wheelMesh.position.set(axle.x, axle.y, boxPos.z + z)
                     } else {
                         const wheelCircleMaterial = new THREE.MeshPhongMaterial({
                             color: 0x26282a,
@@ -1185,7 +1185,7 @@ export class GraphicEngine {
                         })
                         const wheelGeometry = new THREE.CylinderGeometry( axle.radius, axle.radius, 200,  64 )
                         const wheelMesh = new THREE.Mesh(wheelGeometry, wheelCircleMaterial)
-                        wheelMesh.position.set(axle.x, axle.y, z)
+                        wheelMesh.position.set(axle.x, axle.y, boxPos.z + z)
                         wheelMesh.rotation.x = Math.PI/2
 
                         wheelMesh.name = `${model.id}_wheelMesh${i}_${axle.id}`
