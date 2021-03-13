@@ -21,6 +21,7 @@ export class Project {
             model: {
                 opacity: 0.8,
                 drawCenters: true,
+                drawWheelAxles: true,
                 selectedColor: '#ff0000',
                 defaultSteps: {
                     size: 100,
@@ -368,7 +369,7 @@ export class Project {
         }
         // if (!topModel._wheelAxles) topModel._wheelAxles = []
         topModel._wheelAxles.push(axle)
-        topModel.updatePosition()
+        topModel.initSupportGroups()
     }
 
     wheelAxleX(id, val) {
@@ -382,7 +383,7 @@ export class Project {
             return
         }
         axle.x = +val
-        topModel.updatePosition()
+        topModel.initSupportGroups()
     }
 
 
@@ -397,7 +398,7 @@ export class Project {
             return
         }
         axle.y = +val
-        topModel.updatePosition()
+        topModel.initSupportGroups()
     }
 
     wheelAxleWidth(id, val) {
@@ -411,7 +412,7 @@ export class Project {
             return
         }
         axle.width = +val
-        topModel.updatePosition()
+        topModel.initSupportGroups()
     }
 
     wheelAxleRadius(id, val) {
@@ -426,7 +427,7 @@ export class Project {
         }
         axle.radius = +val
         axle.needUpdate = true
-        topModel.updatePosition()
+        topModel.initSupportGroups()
     }
 
 }

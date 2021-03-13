@@ -1035,7 +1035,7 @@ export class Scene {
         const rollback_key = uuidv1();
         this.objects.forEach(technicalModel => {
             if (technicalModel === platformModel) return
-            if (!technicalModel.isTop()) return
+            if (!technicalModel.isTop) return
             technicalModel.rollbacks[rollback_key] = {
                 position: new Vector3(...technicalModel.position.asArray),
                 rotation: new Vector3(...technicalModel.rotation.asArray)
@@ -1054,7 +1054,7 @@ export class Scene {
         // Для каждого объекта на сцене (не платформы) сохранит позиции
         this.objects.forEach(technicalModel => {
             if (technicalModel === platformModel) return
-            if (!technicalModel.isTop()) return
+            if (!technicalModel.isTop) return
 
             const saved = technicalModel.rollbacks[rollback_key]
             if (!saved){
@@ -1075,7 +1075,7 @@ export class Scene {
         // (если еще не был установлен)
         this.objects.forEach(technicalModel => {
             if (technicalModel === platformModel) return
-            if (!technicalModel.isTop()) return
+            if (!technicalModel.isTop) return
 
             this.applySupportReaction(technicalModel, platformModel)
         })
@@ -1092,7 +1092,7 @@ export class Scene {
         const notOns = []
         this.objects.forEach(technicalModel => {
             if (technicalModel === platformModel) return
-            if (!technicalModel.isTop()) return
+            if (!technicalModel.isTop) return
             // if (typeof technicalModel._checkOnAlias !== "undefined") return
 
             let items = technicalModel.supportGroupsAll.map(gr => gr.items).flat()
@@ -1117,7 +1117,7 @@ export class Scene {
         // Для каждого объекта на сцене (не платформы) обновим рейкасты, чтобы сравнить изменилось ли что то или нет
         this.objects.forEach(technicalModel => {
             if (technicalModel === platformModel) return
-            if (!technicalModel.isTop()) return
+            if (!technicalModel.isTop) return
 
             let items = technicalModel.supportGroupsAll.map(gr => gr.items).flat()
             if (!items.length) return null
@@ -1146,7 +1146,7 @@ export class Scene {
         let collisions = []
         this.objects.forEach(technicalModel => {
             if (technicalModel === platformModel) return
-            if (!technicalModel.isTop()) return
+            if (!technicalModel.isTop) return
 
             const collision = this.checkCollision(technicalModel)
             if (collision) collisions.push(collision)

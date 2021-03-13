@@ -1122,85 +1122,7 @@ export class GraphicEngine {
             }
         }
 
-        // if (this.options3D.drawSupports) {
-        //     const supportsGroups = model.supportGroupsAll
-        //     if (supportsGroups.length) {
-        //         supportsGroups.forEach(group => {
-        //             group.items.forEach((item, index) => {
-        //                 const point = item.point
-        //                 const sphere = this.scene3D.getObjectByName(`${model.id}_supportPoint_${group.name}_${index}`)
-        //                 if (sphere) sphere.position.set(point.x, point.y, point.z)
-        //             })
-        //
-        //         })
-        //     }
-        //
-        //     model.wheelAxles.forEach(axle => {
-        //         const axleLineMaterial = new THREE.LineBasicMaterial({
-        //             color: 0x2FC24A
-        //         })
-        //         const points = []
-        //         points.push(new THREE.Vector3(axle.x, axle.y + 300, -axle.width))
-        //         points.push(new THREE.Vector3(axle.x, axle.y + 300, axle.width))
-        //
-        //         const axleLineGeometry = new THREE.BufferGeometry().setFromPoints(points)
-        //
-        //         const axleLine = new THREE.Line(axleLineGeometry, axleLineMaterial)
-        //
-        //         axleLine.name = model.id + '_axleLine_' + axle.id
-        //         this.scene3D.add(axleLine)
-        //
-        //     })
-        // }
-
-        if (graphicOptions.drawCenters) {
-            const centersLine = this.scene3D.getObjectByName(model.id + '_centersLine')
-            if (centersLine) {
-                // console.log([...model.position.asArray, ...boxPos.asArray]);
-                // centersLine.geometry.attributes.position.array = [...model.position.asArray, ...boxPos.asArray]
-                const positions = centersLine.geometry.attributes.position.array
-                // const newPositions = [...model.position.asArray, ...boxPos.asArray]
-                const newPositions = [...model.absolutePosition.asArray, ...boxPos.asArray]
-                // const newPositions = [...model.position.asArray, ...model.content.position.asArray]
-                let needUpdate
-                for (const i in newPositions) {
-                    if (positions[i] !== newPositions[i]) {
-                        needUpdate = true
-                        positions[i] = newPositions[i]
-                    }
-
-                }
-                centersLine.geometry.attributes.position.needsUpdate = needUpdate
-            } else {
-                const centersLineMaterial = new THREE.LineBasicMaterial({
-                    color: 0xffff00
-                })
-
-                const points = []
-                points.push(new THREE.Vector3(model.position.x, model.position.y, model.position.z))
-                // points.push( new THREE.Vector3( boxPos.x, boxPos.y, boxPos.z ) )
-                points.push(new THREE.Vector3(model.content.position.x, model.content.position.y, model.content.position.z))
-
-                const centersLineGeometry = new THREE.BufferGeometry().setFromPoints(points)
-
-                const centersLine = new THREE.Line(centersLineGeometry, centersLineMaterial)
-
-                centersLine.name = model.id + '_centersLine'
-                this.scene3D.add(centersLine)
-            }
-            // const points = [];
-            // points.push( new THREE.Vector3( model.position.x, model.position.y, model.position.z) );
-            // points.push( new THREE.Vector3( boxPos.x, boxPos.y, boxPos.z ) )
-
-            // const centersLineGeometry = new THREE.BufferGeometry().setFromPoints( points );
-
-            // var centersLine = new THREE.Line( centersLineGeometry, centersLineMaterial );
-            // this.scene3D.add(centersLine)
-        }
-
-
-
-        if ((true || graphicOptions.drawWheelAxles) && model.isTop) {
+        if ((this.options3D.drawWheelAxles) && model.isTop) {
 
             model.wheelAxles.forEach(axle => {
                 // Draw axle
@@ -1278,6 +1200,55 @@ export class GraphicEngine {
             })
 
         }
+
+        if (graphicOptions.drawCenters) {
+            const centersLine = this.scene3D.getObjectByName(model.id + '_centersLine')
+            if (centersLine) {
+                // console.log([...model.position.asArray, ...boxPos.asArray]);
+                // centersLine.geometry.attributes.position.array = [...model.position.asArray, ...boxPos.asArray]
+                const positions = centersLine.geometry.attributes.position.array
+                // const newPositions = [...model.position.asArray, ...boxPos.asArray]
+                const newPositions = [...model.absolutePosition.asArray, ...boxPos.asArray]
+                // const newPositions = [...model.position.asArray, ...model.content.position.asArray]
+                let needUpdate
+                for (const i in newPositions) {
+                    if (positions[i] !== newPositions[i]) {
+                        needUpdate = true
+                        positions[i] = newPositions[i]
+                    }
+
+                }
+                centersLine.geometry.attributes.position.needsUpdate = needUpdate
+            } else {
+                const centersLineMaterial = new THREE.LineBasicMaterial({
+                    color: 0xffff00
+                })
+
+                const points = []
+                points.push(new THREE.Vector3(model.position.x, model.position.y, model.position.z))
+                // points.push( new THREE.Vector3( boxPos.x, boxPos.y, boxPos.z ) )
+                points.push(new THREE.Vector3(model.content.position.x, model.content.position.y, model.content.position.z))
+
+                const centersLineGeometry = new THREE.BufferGeometry().setFromPoints(points)
+
+                const centersLine = new THREE.Line(centersLineGeometry, centersLineMaterial)
+
+                centersLine.name = model.id + '_centersLine'
+                this.scene3D.add(centersLine)
+            }
+            // const points = [];
+            // points.push( new THREE.Vector3( model.position.x, model.position.y, model.position.z) );
+            // points.push( new THREE.Vector3( boxPos.x, boxPos.y, boxPos.z ) )
+
+            // const centersLineGeometry = new THREE.BufferGeometry().setFromPoints( points );
+
+            // var centersLine = new THREE.Line( centersLineGeometry, centersLineMaterial );
+            // this.scene3D.add(centersLine)
+        }
+
+
+
+
 
         model.childs.forEach(one => this.renderModel3D(one, topModel))
     }

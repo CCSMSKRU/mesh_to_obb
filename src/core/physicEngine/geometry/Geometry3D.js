@@ -1477,110 +1477,112 @@ export class Model {
 
         this.isSupport = obj.isSupport // Опорный box
 
-        this.supportGroups = this.isSupport
-            ? obj.supportGroups
-            || (() => {
-                // console.log('this.content.size', this.content.size.asArray, this.position.asArray)
-                let sizeCorrected = this.content && this.content.size ? this.content.size : this.bounds.size
-                if (this.content) sizeCorrected = sizeCorrected.subtract(this.content.position)
+        // this.supportGroups = this.isSupport
+        //     ? obj.supportGroups
+        //     || (() => {
+        //         // console.log('this.content.size', this.content.size.asArray, this.position.asArray)
+        //         let sizeCorrected = this.content && this.content.size ? this.content.size : this.bounds.size
+        //         if (this.content) sizeCorrected = sizeCorrected.subtract(this.content.position)
+        //
+        //         // const supportOffset = obj.supportOffset || 100
+        //         // const supportOffsetX = obj.supportOffsetX || supportOffset || 100
+        //         // const supportOffsetZ = obj.supportOffsetZ || supportOffset || 100
+        //         // const supportOffsetY = obj.supportOffsetY || -300
+        //
+        //         const supportOffset = obj.supportOffset || 0
+        //         const supportOffsetX = obj.supportOffsetX || supportOffset || 100
+        //         const supportOffsetZ = obj.supportOffsetZ || supportOffset || 100
+        //         const supportOffsetY = obj.supportOffsetY || -300
+        //
+        //         const groups = []
+        //         const dic = [
+        //             {
+        //                 name: 'FRONT_LEFT',
+        //                 items: [
+        //                     {
+        //                         id: uuidv1(),
+        //                         point: new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
+        //                     },
+        //                     // {
+        //                     //     id: uuidv1(),
+        //                     //     point: new Point3D(sizeCorrected.x, -sizeCorrected.y, -sizeCorrected.z + supportOffsetZ),
+        //                     // }
+        //                 ]
+        //             },
+        //             {
+        //                 name: 'FRONT_RIGHT',
+        //                 items: [
+        //                     {
+        //                         id: uuidv1(),
+        //                         point: new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ),
+        //                     },
+        //                     // {
+        //                     //     id: uuidv1(),
+        //                     //     point: new Point3D(sizeCorrected.x, -sizeCorrected.y, sizeCorrected.z - supportOffsetZ),
+        //                     // }
+        //                 ]
+        //             },
+        //             {
+        //                 name: 'REAR_LEFT',
+        //                 items: [
+        //                     {
+        //                         id: uuidv1(),
+        //                         point: new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ)
+        //                     },
+        //                     // {
+        //                     //     id: uuidv1(),
+        //                     //     point: new Point3D(-sizeCorrected.x, -sizeCorrected.y, sizeCorrected.z - supportOffsetZ)
+        //                     // }
+        //                 ]
+        //             },
+        //             {
+        //                 name: 'REAR_RIGHT',
+        //                 items: [
+        //                     {
+        //                         id: uuidv1(),
+        //                         point: new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
+        //                     },
+        //                     // {
+        //                     //     id: uuidv1(),
+        //                     //     point: new Point3D(-sizeCorrected.x, -sizeCorrected.y, -sizeCorrected.z + supportOffsetZ),
+        //                     // }
+        //                 ]
+        //             }
+        //         ]
+        //
+        //         for (let i = 0; i < 4; i++) {
+        //
+        //             // const items = []
+        //             // for (let j = 0; j < 2; j++) {
+        //             //     items.push(dic[i].items[0])
+        //             // }
+        //             groups.push({
+        //                 id: uuidv1(),
+        //                 name: dic[i].name,
+        //                 modelId: this.id,
+        //                 items: dic[i].items
+        //                 // items: items
+        //             })
+        //         }
+        //
+        //         return groups
+        //
+        //         // return [
+        //         //     {
+        //         //         name: 'MAIN',
+        //         //         modelId: this.id,
+        //         //         items: [
+        //         //             new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ),
+        //         //             new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
+        //         //             new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
+        //         //             new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ)
+        //         //         ]
+        //         //     },
+        //         // ]
+        //     })()
+        //     : null
 
-                // const supportOffset = obj.supportOffset || 100
-                // const supportOffsetX = obj.supportOffsetX || supportOffset || 100
-                // const supportOffsetZ = obj.supportOffsetZ || supportOffset || 100
-                // const supportOffsetY = obj.supportOffsetY || -300
 
-                const supportOffset = obj.supportOffset || 0
-                const supportOffsetX = obj.supportOffsetX || supportOffset || 100
-                const supportOffsetZ = obj.supportOffsetZ || supportOffset || 100
-                const supportOffsetY = obj.supportOffsetY || -300
-
-                const groups = []
-                const dic = [
-                    {
-                        name: 'FRONT_LEFT',
-                        items: [
-                            {
-                                id: uuidv1(),
-                                point: new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
-                            },
-                            // {
-                            //     id: uuidv1(),
-                            //     point: new Point3D(sizeCorrected.x, -sizeCorrected.y, -sizeCorrected.z + supportOffsetZ),
-                            // }
-                        ]
-                    },
-                    {
-                        name: 'FRONT_RIGHT',
-                        items: [
-                            {
-                                id: uuidv1(),
-                                point: new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ),
-                            },
-                            // {
-                            //     id: uuidv1(),
-                            //     point: new Point3D(sizeCorrected.x, -sizeCorrected.y, sizeCorrected.z - supportOffsetZ),
-                            // }
-                        ]
-                    },
-                    {
-                        name: 'REAR_LEFT',
-                        items: [
-                            {
-                                id: uuidv1(),
-                                point: new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ)
-                            },
-                            // {
-                            //     id: uuidv1(),
-                            //     point: new Point3D(-sizeCorrected.x, -sizeCorrected.y, sizeCorrected.z - supportOffsetZ)
-                            // }
-                        ]
-                    },
-                    {
-                        name: 'REAR_RIGHT',
-                        items: [
-                            {
-                                id: uuidv1(),
-                                point: new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
-                            },
-                            // {
-                            //     id: uuidv1(),
-                            //     point: new Point3D(-sizeCorrected.x, -sizeCorrected.y, -sizeCorrected.z + supportOffsetZ),
-                            // }
-                        ]
-                    }
-                ]
-
-                for (let i = 0; i < 4; i++) {
-
-                    // const items = []
-                    // for (let j = 0; j < 2; j++) {
-                    //     items.push(dic[i].items[0])
-                    // }
-                    groups.push({
-                        id: uuidv1(),
-                        name: dic[i].name,
-                        modelId: this.id,
-                        items: dic[i].items
-                        // items: items
-                    })
-                }
-
-                return groups
-
-                // return [
-                //     {
-                //         name: 'MAIN',
-                //         modelId: this.id,
-                //         items: [
-                //             new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ),
-                //             new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
-                //             new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
-                //             new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ)
-                //         ]
-                //     },
-                // ]
-            })()
-            : null
 
         this.isPlatform = obj.isPlatform // On this plane can be placed transport (another objects)
         this.isRamp = obj.isRamp // On this plane transport can move up
@@ -1589,7 +1591,99 @@ export class Model {
         this.rollbacks = {}
 
         this.saveOrigState()
+        this.initSupportGroups()
 
+    }
+
+    initSupportGroups(){
+        if (!this.isSupport || !this.isTop) {
+            this.supportGroups = null
+            return
+        }
+
+        const groups = []
+
+        if (!this.wheelAxles.length) {
+            let sizeCorrected = this.content && this.content.size ? this.content.size : this.bounds.size
+            if (this.content) sizeCorrected = sizeCorrected.subtract(this.content.position)
+
+            const supportOffset = 0
+            const supportOffsetX = supportOffset || 100
+            const supportOffsetZ = supportOffset || 100
+            const supportOffsetY = -300
+
+            const dic = [
+                {
+                    name: 'FRONT_LEFT',
+                    items: [
+                        {
+                            id: uuidv1(),
+                            point: new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
+                        },
+                    ]
+                },
+                {
+                    name: 'FRONT_RIGHT',
+                    items: [
+                        {
+                            id: uuidv1(),
+                            point: new Point3D(sizeCorrected.x - supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ),
+                        },
+                    ]
+                },
+                {
+                    name: 'REAR_LEFT',
+                    items: [
+                        {
+                            id: uuidv1(),
+                            point: new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, sizeCorrected.z - supportOffsetZ)
+                        },
+                    ]
+                },
+                {
+                    name: 'REAR_RIGHT',
+                    items: [
+                        {
+                            id: uuidv1(),
+                            point: new Point3D(-sizeCorrected.x + supportOffsetX, -sizeCorrected.y + supportOffsetY, -sizeCorrected.z + supportOffsetZ),
+                        },
+                    ]
+                }
+            ]
+
+            for (let i = 0; i < 4; i++) {
+                groups.push({
+                    id: uuidv1(),
+                    name: dic[i].name,
+                    modelId: this.id,
+                    items: dic[i].items
+                    // items: items
+                })
+            }
+        } else {
+
+            this._wheelAxles.forEach(axle => {
+                for (let i = 0; i < 2; i++) {
+                    const z = i > 0 ? -axle.width : axle.width
+                    groups.push({
+                        id: axle.id + '_' + i,
+                        name: 'GROUP_' + axle.id + '_' + i,
+                        modelId: this.id,
+                        items: [
+                            {
+                                id: 'ITEM_' + axle.id + '_' + i,
+                                point: new Point3D(axle.x, axle.y - axle.radius, z),
+                            }
+                        ]
+                    })
+
+                }
+
+            })
+        }
+
+        this.supportGroups = groups
+        this.updatePosition()
     }
 
     saveOrigState() {
@@ -1640,10 +1734,6 @@ export class Model {
 
     getTopModel() {
         return this.parent ? this.parent.getTopModel() : this
-    }
-
-    isTop() {
-        return !this.parent
     }
 
     get isTop(){
@@ -1812,9 +1902,9 @@ export class Model {
                 }
             })
             : []
-        this.childs.forEach(child => {
-            groups.push(...child.supportGroupsAll)
-        })
+        // this.childs.forEach(child => {
+        //     groups.push(...child.supportGroupsAll)
+        // })
         this._supportGroupsAll = groups
 
         return this._supportGroupsAll

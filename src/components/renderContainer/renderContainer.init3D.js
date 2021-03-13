@@ -29,6 +29,7 @@ export const init3D = (options = {}) => {
                     },
                     axesHelper: true,
                     drawSupports: true,
+                    drawWheelAxles: true,
                     // drawBounds: true,
                 }
             },
