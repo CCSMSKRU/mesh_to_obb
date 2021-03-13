@@ -32,6 +32,8 @@ export class Options extends Component {
         this.$on('project:updateModel', (e) => {
             this.render()
         })
+
+
     }
 
     render() {
@@ -42,7 +44,6 @@ export class Options extends Component {
             // componentHandler.upgradeElement(one.$el);
             componentHandler.upgradeElement(one)
         })
-        // componentHandler.upgradeElement(el);
     }
 
     toHTML() {
@@ -73,6 +74,8 @@ export class Options extends Component {
             if ($target.data('name') === 'apply') return this.$emit('options:applyDefaultSteps', {value: this.defaultSteps})
         } else if ($target.data('category') === 'boxSize') {
             return this.$emit(`options:boxSize_${$target.data('name')}`)
+        }else if ($target.data('category') === 'wheelAxleAdd') {
+            return this.$emit(`options:wheelAxleAdd_${$target.data('name')}`)
         }
 
     }
@@ -96,8 +99,8 @@ export class Options extends Component {
             const val = ($target.data('type') === 'option_switch')
                 ? !$target.parent('label').hasClass('is-checked')
                 : $target.val()
-            console.log('val', val, $target.val(), $target)
-            return this.$emit(`options:${$target.data('category')}_${$target.data('name')}`, {value: val})
+            const id = $target.data('id_')
+            return this.$emit(`options:${$target.data('category')}_${$target.data('name')}`, {value: val, id})
         }
         // else if ($target.data('category') === 'boxContainerPosition') {
         //     if ($target.data('name') === 'x') return this.$emit('options:boxContainerPosition_x', {value:+$target.val()})

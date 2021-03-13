@@ -1458,6 +1458,7 @@ export class Model {
         this._boundsFull = null // AABB (with childs)
         this.type = obj.type || ''
         this.states = obj.states || []
+        this._wheelAxles = obj.wheelAxles || []
 
 
         this._position = obj.position || new Vector3()
@@ -1617,6 +1618,7 @@ export class Model {
             position_orig: this.position_orig,
             rotation_orig: this.rotation_orig,
             states: this.states,
+            wheelAxles: this._wheelAxles,
             graphicOptions: cloneObj(this.graphicOptions),
         }
         if (res.content) res.content.instanceName = getPrimitiveInstanceName(res.content)
@@ -1641,6 +1643,10 @@ export class Model {
     }
 
     isTop() {
+        return !this.parent
+    }
+
+    get isTop(){
         return !this.parent
     }
 
@@ -1751,7 +1757,9 @@ export class Model {
     }
 
     updatePosition(vDirection) {
+        this._getWorldMatrix = null
         this._supportGroupsAll = null
+        this._wheelAxlesWorld = null
         this._platforms = null
         if (vDirection && this._boundsFull) {
             this._boundsFull.position = this._boundsFull.position.add(vDirection)
@@ -1810,6 +1818,21 @@ export class Model {
         this._supportGroupsAll = groups
 
         return this._supportGroupsAll
+    }
+
+    get wheelAxles(){
+        if (this._wheelAxlesWorld) return this._wheelAxlesWorld
+
+        const world = this.getWorldMatrix()
+        this._wheelAxlesWorld = this._wheelAxles.map(axle=>{
+            const point = world.multiplyPoint(new Point3D(axle.x, axle.y, 0))
+            return {
+                ...axle,
+                x:point.x,
+                y:point.y,
+            }
+        })
+        return this._wheelAxlesWorld
     }
 
     get platforms() {
@@ -1974,6 +1997,8 @@ export class Model {
     }
 
     getWorldMatrix() {
+        if (this._getWorldMatrix) return this._getWorldMatrix
+
         let translation = new Matrix4().translation(this.position)
         let rotation = new Matrix4().rotation(...this.rotation.asArray)
 
@@ -1989,8 +2014,8 @@ export class Model {
         //         0, 0, 1, 0,
         //         0, 0, 0, 1))
         // }
-
-        return parentMat ? localMat.multiply(parentMat) : localMat
+        this._getWorldMatrix = parentMat ? localMat.multiply(parentMat) : localMat
+        return this._getWorldMatrix
     }
 
     getOBB() {

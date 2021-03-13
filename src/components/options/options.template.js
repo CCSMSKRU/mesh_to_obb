@@ -14,6 +14,7 @@ export function createOptions(data = {}, options = {}) {
     const opacity = typeof options.opacity !== 'undefined' ? options.opacity : 1
 
     const model = data.model
+    const topModel = model? data.model.getTopModel() : null
 
 
 
@@ -38,7 +39,7 @@ export function createOptions(data = {}, options = {}) {
                 {
                     name: 'alias',
                     title: 'Alias',
-                    value: model ? model.getTopModel().alias : '',
+                    value: topModel ? topModel.alias : '',
                     func: createInput
                 },
             ],
@@ -375,8 +376,99 @@ export function createOptions(data = {}, options = {}) {
                 ]
             },
 
-        }
+        },
+        addWheelAxle: {
+            func: createButton,
+            options: {
+                datas: [
+                    'data-type="option_button"',
+                    'data-category="wheelAxleAdd"',
+                ],
+                prefix: 'wheelAxleAdd_'
+            },
+            items: [
+                {
+                    name: 'add',
+                    icon: 'add'
+                }
+            ]
+        },
+        // wheels: ,
     }
+
+    // Add wheels (supportPoints)
+    const wheelAxles = topModel
+        ? topModel._wheelAxles || []
+        : []
+
+    const wheelAxlesBoxes = wheelAxles.map((one, index)=>{
+        const box = {
+            func: createInput,
+            options: {
+                datas: [
+                    `data-id_=${one.id}`,
+                    'data-type="option_input"',
+                    `data-category="wheelAxle"`,
+                ],
+                inputDesignType:'mdl-textfield--floating-label',
+                prefix: `wheelAxle_`
+            },
+            items: [
+                {
+                    name: 'x',
+                    title: 'X',
+                    width: 50,
+                    value: one.x || 0,
+                    type: 'number',
+                    min: -100000,
+                    max: 100000,
+                    step: 10
+                },
+                {
+                    name: 'y',
+                    title: 'Y',
+                    width: 50,
+                    value: one.y || 0,
+                    type: 'number',
+                    min: -100000,
+                    max: 100000,
+                    step: 10
+                },
+                {
+                    name: 'width',
+                    title: 'Width',
+                    width: 50,
+                    value: one.width || (topModel? topModel.content.size.z : 1000),
+                    type: 'number',
+                    min: 1,
+                    max: 100000,
+                    step: 10
+                },
+                {
+                    name: 'radius',
+                    title: 'Radius',
+                    width: 50,
+                    value: one.radius || 10,
+                    type: 'number',
+                    min: 1,
+                    max: 100000,
+                    step: 10
+                },
+                {
+                    name: 'remove',
+                    icon: 'delete',
+                    datas: [
+                        'data-type="option_button"',
+                        `data-category="wheelAxleRemove"`,
+                    ],
+                    func: createButton
+                }
+            ]
+        }
+        return box
+    })
+
+
 
     if (!blocks.selected.isSelected) {
         return `
@@ -456,7 +548,22 @@ export function createOptions(data = {}, options = {}) {
                     ${createItems(blocks.box.rotation)}
                 </div>
             </div>
-             
+            <div class="options__box wheel_axles">
+                <h5>Wheel axles</h5>
+                ${
+        wheelAxlesBoxes.map((one, index) => {
+            return `
+                <div class="flex between" data-type='wheelAxleContainer' data-id="${one.id || index}">
+                    <div class="label"><b>${index}:</b></div>
+                    ${createItems(one)}
+                </div>`
+        })
+        }
+                <div class="flex between">
+                    ${createItems(blocks.addWheelAxle)}
+                </div>
+            </div>
+            
             
         </div>
         `

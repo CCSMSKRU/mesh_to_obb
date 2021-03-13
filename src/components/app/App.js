@@ -331,6 +331,27 @@ export class App {
         })
 
 
+        // wheelAxles
+        this.$on('options:wheelAxleAdd_add', (e) => {
+            this.project.addWheelAxle()
+            if (this.project.model) {
+                this.$emit('project:updateModel')
+            }
+        })
+
+        this.$on('options:wheelAxle_x', (e) => {
+            this.project.wheelAxleX(e.id, e.value)
+        })
+        this.$on('options:wheelAxle_y', (e) => {
+            this.project.wheelAxleY(e.id, e.value)
+        })
+        this.$on('options:wheelAxle_width', (e) => {
+            this.project.wheelAxleWidth(e.id, e.value)
+        })
+        this.$on('options:wheelAxle_radius', (e) => {
+            this.project.wheelAxleRadius(e.id, e.value)
+        })
+
 
     }
 

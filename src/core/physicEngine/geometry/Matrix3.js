@@ -46,26 +46,26 @@ export class Matrix3 extends Matrix{
 
     }
 
-    get _11(){return this.__11;}
-    set _11(val){this.__11 = val;}
-    get _12(){return this.__12;}
-    set _12(val){this.__12 = val;}
-    get _13(){return this.__13;}
-    set _13(val){this.__13 = val;}
-    get _21(){return this.__21;}
-    set _21(val){this.__21 = val;}
-    get _22(){return this.__22;}
-    set _22(val){this.__22 = val;}
-    get _23(){return this.__23;}
-    set _23(val){this.__23 = val;}
-    get _31(){return this.__31;}
-    set _31(val){this.__31 = val;}
-    get _32(){return this.__32;}
-    set _32(val){this.__32 = val;}
-    get _33(){return this.__33;}
-    set _33(val){this.__33 = val;}
+    // get _11(){return this.__11;}
+    // set _11(val){this.__11 = val;}
+    // get _12(){return this.__12;}
+    // set _12(val){this.__12 = val;}
+    // get _13(){return this.__13;}
+    // set _13(val){this.__13 = val;}
+    // get _21(){return this.__21;}
+    // set _21(val){this.__21 = val;}
+    // get _22(){return this.__22;}
+    // set _22(val){this.__22 = val;}
+    // get _23(){return this.__23;}
+    // set _23(val){this.__23 = val;}
+    // get _31(){return this.__31;}
+    // set _31(val){this.__31 = val;}
+    // get _32(){return this.__32;}
+    // set _32(val){this.__32 = val;}
+    // get _33(){return this.__33;}
+    // set _33(val){this.__33 = val;}
 
-    decomposeYawPitchRoll() {
+    decomposeYawPitchRoll_OLD() {
         // https://coderoad.ru/1996957/%D0%9F%D1%80%D0%B5%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-%D0%AD%D0%B9%D0%BB%D0%B5%D1%80%D0%B0-%D0%B2-%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D1%83-%D0%B8-%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D1%8B-%D0%B2-%D0%AD%D0%B9%D0%BB%D0%B5%D1%80%D0%B0
         const euler = new Vector3()
         euler.x = Math.asin(-this._32)                  // Pitch
@@ -79,6 +79,77 @@ export class Matrix3 extends Matrix{
             euler.z = Math.atan2(-this._21, this._11)    // Roll
         }
         return new Vector3(this.radToDeg(euler.x), this.radToDeg(euler.y), this.radToDeg(euler.z))
+    }
+
+
+    // http://nghiaho.com/?page_id=846
+    // http://nghiaho.com/uploads/code/rotation_matrix_demo.m
+    /*
+    * function rotation_matrix_demo
+
+        disp("Picking random Euler angles (radians)");
+
+        x = 2*pi*rand() - pi % -180 to 180
+        y = pi*rand() - pi*0.5 % -90 to 90
+        z = 2*pi*rand() - pi % -180 to 180
+
+        disp("\nRotation matrix is:");
+        R = compose_rotation(x,y,z)
+
+        disp("Decomposing R");
+        [x2,y2,z2] = decompose_rotation(R)
+
+        disp("");
+        err = sqrt((x2-x)*(x2-x) + (y2-y)*(y2-y) + (z2-z)*(z2-z))
+
+        if err < 1e-5
+            disp("Results are correct!");
+        else
+            disp("Oops wrong results :(");
+        end
+    end
+
+    function [x,y,z] = decompose_rotation(R)
+        x = atan2(R(3,2), R(3,3));
+        y = atan2(-R(3,1), sqrt(R(3,2)*R(3,2) + R(3,3)*R(3,3)));
+        z = atan2(R(2,1), R(1,1));
+    end
+
+    function R = compose_rotation(x, y, z)
+        X = eye(3,3);
+        Y = eye(3,3);
+        Z = eye(3,3);
+
+        X(2,2) = cos(x);
+        X(2,3) = -sin(x);
+        X(3,2) = sin(x);
+        X(3,3) = cos(x);
+
+        Y(1,1) = cos(y);
+        Y(1,3) = sin(y);
+        Y(3,1) = -sin(y);
+        Y(3,3) = cos(y);
+
+        Z(1,1) = cos(z);
+        Z(1,2) = -sin(z);
+        Z(2,1) = sin(z);
+        Z(2,2) = cos(z);
+
+        R = Z*Y*X;
+    end
+    * */
+
+    decomposeYawPitchRoll() {
+        // x = atan2(R(3,2), R(3,3));
+        // y = atan2(-R(3,1), sqrt(R(3,2)*R(3,2) + R(3,3)*R(3,3)));
+        // z = atan2(R(2,1), R(1,1));
+
+        const x = Math.atan2(this._32, this._33)
+        const y = Math.atan2(-this._31, Math.sqrt(Math.pow(this._32) + Math.pow(this._33)))
+        const z = - Math.atan2(this._21, this._11) // У меня ось в другую сторону
+
+        return new Vector3(this.radToDeg(x), this.radToDeg(y), this.radToDeg(z))
+        // return new Vector3(x, y, z)
     }
 
     axisAngle(axis, angle){

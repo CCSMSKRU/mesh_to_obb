@@ -54,6 +54,7 @@ export class Vector3 {
 
     multiply(v) {
         if (!(v instanceof Vector3)) {
+            console.log(v);
             throw new Error('In Vector3 multiply v is not a Vector3. See console')
         }
         return new Vector3(this.x * v.x, this.y * v.y, this.z * v.z);
@@ -63,9 +64,15 @@ export class Vector3 {
         return new Vector3(this.x * num, this.y * num, this.z * num);
     }
 
+    div(num){
+        if (!num) throw 'Cannot divide by zero'
+        return new Vector3(this.x / num, this.y / num, this.z / num)
+    }
+
     dot(v) {
         return this.x * v.x + this.y * v.y + this.z * v.z;
     }
+
     equal(v, round = 1000) {
         const deviation = 1 / round;
         if (Math.abs(this.x - v.x) > deviation) return false;
@@ -124,6 +131,23 @@ export class Vector3 {
         return this.subtract(v.multiplyS(d * 2));
     }
 
+    round(num){
+
+        if (!num || isNaN(+num)){
+            return new Vector3(
+                Math.round(this.x),
+                Math.round(this.y),
+                Math.round(this.z)
+            )
+        }
+        const powNum = Math.pow(10, num)
+        return new Vector3(
+            Math.round(this.x * powNum) / powNum,
+            Math.round(this.y * powNum) / powNum,
+            Math.round(this.z * powNum) / powNum
+        )
+    }
+
 }
 
 
@@ -133,3 +157,32 @@ Vector3.prototype.degToRad = function (deg) {
 Vector3.prototype.radToDeg = function (rad) {
     return rad / Math.PI * 180;
 };
+
+Vector3.prototype.average = function (vectors = []) {
+    if (!vectors.length) throw 'Method need one or more vector(s)'
+    let sum = new Vector3()
+    vectors.forEach(vec=>sum = sum.add(vec))
+    return sum.div(vectors.length)
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

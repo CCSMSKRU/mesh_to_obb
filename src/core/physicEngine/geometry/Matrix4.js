@@ -169,39 +169,39 @@ export class Matrix4 extends Matrix{
         };
     }
 
-    get _11(){return this.__11;}
-    set _11(val){this.__11 = val;}
-    get _12(){return this.__12;}
-    set _12(val){this.__12 = val;}
-    get _13(){return this.__13;}
-    set _13(val){this.__13 = val;}
-    get _14(){return this.__14;}
-    set _14(val){this.__14 = val;}
-    get _21(){return this.__21;}
-    set _21(val){this.__21 = val;}
-    get _22(){return this.__22;}
-    set _22(val){this.__22 = val;}
-    get _23(){return this.__23;}
-    set _23(val){this.__23 = val;}
-    get _24(){return this.__24;}
-    set _24(val){this.__24 = val;}
-    get _31(){return this.__31;}
-    set _31(val){this.__31 = val;}
-    get _32(){return this.__32;}
-    set _32(val){this.__32 = val;}
-    get _33(){return this.__33;}
-    set _33(val){this.__33 = val;}
-    get _34(){return this.__34;}
-    set _34(val){this.__34 = val;}
-
-    get _41(){return this.__41;}
-    set _41(val){this.__41 = val;}
-    get _42(){return this.__42;}
-    set _42(val){this.__42 = val;}
-    get _43(){return this.__43;}
-    set _43(val){this.__43 = val;}
-    get _44(){return this.__44;}
-    set _44(val){this.__44 = val;}
+    // get _11(){return this.__11;}
+    // set _11(val){this.__11 = val;}
+    // get _12(){return this.__12;}
+    // set _12(val){this.__12 = val;}
+    // get _13(){return this.__13;}
+    // set _13(val){this.__13 = val;}
+    // get _14(){return this.__14;}
+    // set _14(val){this.__14 = val;}
+    // get _21(){return this.__21;}
+    // set _21(val){this.__21 = val;}
+    // get _22(){return this.__22;}
+    // set _22(val){this.__22 = val;}
+    // get _23(){return this.__23;}
+    // set _23(val){this.__23 = val;}
+    // get _24(){return this.__24;}
+    // set _24(val){this.__24 = val;}
+    // get _31(){return this.__31;}
+    // set _31(val){this.__31 = val;}
+    // get _32(){return this.__32;}
+    // set _32(val){this.__32 = val;}
+    // get _33(){return this.__33;}
+    // set _33(val){this.__33 = val;}
+    // get _34(){return this.__34;}
+    // set _34(val){this.__34 = val;}
+    //
+    // get _41(){return this.__41;}
+    // set _41(val){this.__41 = val;}
+    // get _42(){return this.__42;}
+    // set _42(val){this.__42 = val;}
+    // get _43(){return this.__43;}
+    // set _43(val){this.__43 = val;}
+    // get _44(){return this.__44;}
+    // set _44(val){this.__44 = val;}
 
     getTranslation(){
         return new Vector3(this._41, this._42, this._43);
@@ -299,11 +299,14 @@ export class Matrix4 extends Matrix{
     }
 
     multiplyVector(v){
-        let x = v.x * this._11 + v.y * this._21 +
+        let x =
+            v.x * this._11 + v.y * this._21 +
             v.z * this._31 + 0  * this._41;
-        let y = v.x * this._12 + v.y * this._22 +
+        let y =
+            v.x * this._12 + v.y * this._22 +
             v.z * this._32 + 0  * this._42;
-        let z = v.x * this._13 + v.y * this._23 +
+        let z =
+            v.x * this._13 + v.y * this._23 +
             v.z * this._33 + 0  * this._43;
         return new Vector3(x, y, z);
     }

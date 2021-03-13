@@ -2,6 +2,7 @@ import {AABB, Mesh, Model, OBB} from '@core/physicEngine/geometry/Geometry3D'
 
 export const checkCollision2Objects = (first, second) => {
 
+    let collisions
     const collisionBoundsFull = first.boundsFull.aabbIn(second.boundsFull)
     if (!collisionBoundsFull) return
 
@@ -9,7 +10,7 @@ export const checkCollision2Objects = (first, second) => {
     // Внешняя рамка всей модели имеет коллизию.
     // Переберем всех детей чтобы определить где именно коллизия и есть ли она вообще
 
-    let collisions
+
 
     if (first.childs && first.childs.length) {
         const second_collisions = first.childs
@@ -32,6 +33,9 @@ export const checkCollision2Objects = (first, second) => {
         else if (second instanceof OBB) collision = first.modelOBB(second)
         else if (second instanceof AABB) collision = first.modelAABB(second)
     }
+    // if (collision){
+    //     console.log('COLLISION', first, second)
+    // }
     if (collision) collisions = [collision]
 
 

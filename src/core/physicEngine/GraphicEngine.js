@@ -39,9 +39,9 @@ export class GraphicEngine {
         this.scale = obj.scale || new Vector3(0.0265, 0.0265, 0.0265)
         this.offset = obj.offset || new Vector3(0, 0, 0)
 
-        const groundOptions = typeof obj.groundOptions === 'object' ?  obj.groundOptions : null
+        const groundOptions = typeof obj.groundOptions === 'object' ? obj.groundOptions : null
 
-        if (groundOptions){
+        if (groundOptions) {
             this.ground = new Plane(groundOptions.normal || new Vector3(0, -1, 0), groundOptions.distance || 100000)
         }
 
@@ -346,7 +346,7 @@ export class GraphicEngine {
         })
         //renderer.shadowMapEnabled = true;
         this.renderer3D.setSize(this.options3D.width, this.options3D.height)
-        const clearColor = typeof this.options3D.clearColor !== 'undefined'? this.options3D.clearColor : 0xA7B0C4
+        const clearColor = typeof this.options3D.clearColor !== 'undefined' ? this.options3D.clearColor : 0xA7B0C4
         this.renderer3D.setClearColor(clearColor, 1)
         const $renderer3D = $(this.renderer3D.domElement)
         $renderer3D
@@ -360,7 +360,7 @@ export class GraphicEngine {
         this.controls3D = new OrbitControls(this.camera3D, this.renderer3D.domElement)
 
         // this.angle = 0
-        if (this.options3D.axesHelper){
+        if (this.options3D.axesHelper) {
             var axesHelper = new THREE.AxesHelper(50000)
             this.scene3D.add(axesHelper)
         }
@@ -510,10 +510,10 @@ export class GraphicEngine {
         return this
     }
 
-    clear3DScene(){
+    clear3DScene() {
         if (!this.scene3D) return
         // const ids = this.scene3D.children.filter(one=>one.name).map(one=>one.name.replace(/_.*/ig, ''))
-        this.scene3D.children = this.scene3D.children.filter(one=>!one.name)
+        this.scene3D.children = this.scene3D.children.filter(one => !one.name)
         // this.scene3D.children.forEach(one=>{
         //     if (!one.name) return
         //     this.scene3D.remove(one)
@@ -775,7 +775,7 @@ export class GraphicEngine {
     // }
 
     addModelTo3D(model, topModel = {}) {
-        if (model.type === 'OBJ'){
+        if (model.type === 'OBJ') {
             var loader = new OBJLoader()
             const scene = this.scene3D
             // load a resource
@@ -783,7 +783,7 @@ export class GraphicEngine {
                 // resource URL
                 model.objUrl,
                 // called when resource is loaded
-                function ( object ) {
+                function (object) {
 
                     scene.add(object)
                     console.log('Three object', object)
@@ -791,13 +791,13 @@ export class GraphicEngine {
 
                 },
                 // called when loading is in progresses
-                function ( xhr ) {
+                function (xhr) {
 
                     console.log((xhr.loaded / xhr.total * 100) + '% loaded')
 
                 },
                 // called when loading has errors
-                function ( error ) {
+                function (error) {
 
                     console.log('An error happened', error)
 
@@ -807,7 +807,7 @@ export class GraphicEngine {
             return
         }
 
-        if (model.type === 'THREEJS_OBJ'){
+        if (model.type === 'THREEJS_OBJ') {
             model.content.name = model.name
             this.scene3D.add(model.content)
             return
@@ -824,7 +824,7 @@ export class GraphicEngine {
         const geometry = new THREE.BoxGeometry(boxSize.x * 2, boxSize.y * 2, boxSize.z * 2)
         const material = new THREE.MeshPhongMaterial({
             color: graphicOptions.materialColor || '#0F0',
-            opacity:typeof graphicOptions.opacity !== 'undefined'? graphicOptions.opacity : 1,
+            opacity: typeof graphicOptions.opacity !== 'undefined' ? graphicOptions.opacity : 1,
             // transparent:graphicOptions.transparent
             transparent: !(typeof graphicOptions.opacity !== 'undefined' && graphicOptions.opacity === 1)
         })
@@ -834,7 +834,7 @@ export class GraphicEngine {
         this.scene3D.add(cube)
 
 
-        if (this.options3D.drawBounds){
+        if (this.options3D.drawBounds) {
             const boundsFullSize = model.boundsFull.size //.multiply(this.scale)
             const boundsFullPos = box.position //.multiply(this.inverseMultiplyVec3D)
             const boundsFullGeometry = new THREE.BoxGeometry(boundsFullSize.x * 2, boundsFullSize.y * 2, boundsFullSize.z * 2)
@@ -849,6 +849,7 @@ export class GraphicEngine {
             boundsFullBox.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
             this.scene3D.add(boundsFullBox)
         }
+
 
         if (this.options3D.drawSupports) {
             const supportsGroups = model.supportGroupsAll
@@ -867,16 +868,26 @@ export class GraphicEngine {
 
                 })
             }
-            // const boundsFullSize = model.boundsFull.size //.multiply(this.scale)
-            // const boundsFullPos = box.position //.multiply(this.inverseMultiplyVec3D)
-            // const boundsFullGeometry = new THREE.BoxGeometry(boundsFullSize.x * 2, boundsFullSize.y * 2, boundsFullSize.z * 2)
-            //
-            // const boundsFullMaterial = new THREE.MeshPhongMaterial({color: model.childs.length? '#cdffcb' : '#ffa2a5', opacity:model.childs.length? 0.2 : 0.5, transparent: true,})
-            // const boundsFullBox = new THREE.Mesh(boundsFullGeometry, boundsFullMaterial)
-            // boundsFullBox.name = model.id + '_boundsFull'
-            // boundsFullBox.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
-            // this.scene3D.add(boundsFullBox)
-    }
+        }
+
+        // if ((this.options3D.drawWheelAxle || true) && model.isTop) {
+        //     model.wheelAxles.forEach(axle => {
+        //         const axleLineMaterial = new THREE.LineBasicMaterial({
+        //             color: 0x2FC24A
+        //         })
+        //         const points = []
+        //         points.push(new THREE.Vector3(axle.x, axle.y + 300, -axle.width))
+        //         points.push(new THREE.Vector3(axle.x, axle.y + 300, axle.width))
+        //
+        //         const axleLineGeometry = new THREE.BufferGeometry().setFromPoints(points)
+        //
+        //         const axleLine = new THREE.Line(axleLineGeometry, axleLineMaterial)
+        //
+        //         axleLine.name = model.id + '_axleLine_' + axle.id
+        //         this.scene3D.add(axleLine)
+        //
+        //     })
+        // }
 
     }
 
@@ -899,15 +910,14 @@ export class GraphicEngine {
         })
 
         if (this.ground instanceof Plane) {
-            const geometry = new THREE.PlaneGeometry( this.ground.distance, this.ground.distance, 1, 1 );
-            const material = new THREE.MeshBasicMaterial( {color: '#0000ff', side: THREE.DoubleSide} );
-            const plane = new THREE.Mesh( geometry, material );
+            const geometry = new THREE.PlaneGeometry(this.ground.distance, this.ground.distance, 1, 1)
+            const material = new THREE.MeshBasicMaterial({color: '#0000ff', side: THREE.DoubleSide})
+            const plane = new THREE.Mesh(geometry, material)
             plane.material.transparent = true
             plane.material.opacity = 0.1
-            plane.rotateX( - Math.PI / 2);
+            plane.rotateX(-Math.PI / 2)
             this.scene3D.add(plane)
         }
-
 
 
         this.renderScene3D_func = this.renderScene3D_.bind(this, scene)
@@ -938,25 +948,25 @@ export class GraphicEngine {
         }
 
 
-        if (model.content.sizeNeedUpdate){
+        if (model.content.sizeNeedUpdate) {
             const scaleX = (model.content.size.x * 2) / cube.geometry.parameters.width
             const scaleY = (model.content.size.y * 2) / cube.geometry.parameters.height
             const scaleZ = (model.content.size.z * 2) / cube.geometry.parameters.depth
-            cube.scale.set(scaleX,scaleY,scaleZ)
+            cube.scale.set(scaleX, scaleY, scaleZ)
             model.content.sizeNeedUpdate = false
         }
 
 
-        if (model.graphicOptions.updated){
+        if (model.graphicOptions.updated) {
             delete model.graphicOptions.updated
             delete model.graphicOptions.needUpdate
         }
 
         const graphicOptions = {...topModel.graphicOptions, ...model.graphicOptions}
-        if (graphicOptions.needUpdate){
+        if (graphicOptions.needUpdate) {
             if (graphicOptions.materialColor) cube.material.color = new THREE.Color(graphicOptions.materialColor)
             // if (graphicOptions.transparent) cube.material.transparent = graphicOptions.transparent
-            const opacity = typeof graphicOptions.opacity !== 'undefined'? graphicOptions.opacity : null
+            const opacity = typeof graphicOptions.opacity !== 'undefined' ? graphicOptions.opacity : null
             if (opacity) {
                 cube.material.transparent = !(opacity === 1)
                 cube.material.opacity = opacity
@@ -1083,16 +1093,16 @@ export class GraphicEngine {
         // // let boxPos = box.position
         cube.position.set(boxPos.x, boxPos.y, boxPos.z)
 
-        if (this.options3D.drawBounds){
+        if (this.options3D.drawBounds) {
             const cubeBoundsFull = this.scene3D.getObjectByName(model.id + '_boundsFull')
-            if (cubeBoundsFull){
+            if (cubeBoundsFull) {
                 // const boundsFullPos = box.position.multiply(this.inverseMultiplyVec3D)
                 // const boundsFullPos = model.boundsFull.position.multiply(this.inverseMultiplyVec3D)
                 const boundsFullPos = model.boundsFull.position
                 const scaleX = (model.boundsFull.size.x * 2) / cubeBoundsFull.geometry.parameters.width
                 const scaleY = (model.boundsFull.size.y * 2) / cubeBoundsFull.geometry.parameters.height
                 const scaleZ = (model.boundsFull.size.z * 2) / cubeBoundsFull.geometry.parameters.depth
-                cubeBoundsFull.scale.set(scaleX,scaleY,scaleZ)
+                cubeBoundsFull.scale.set(scaleX, scaleY, scaleZ)
                 // cubeBoundsFull.position.set(model.boundsFull.position.x, model.boundsFull.position.y, model.boundsFull.position.z)
                 cubeBoundsFull.position.set(boundsFullPos.x, boundsFullPos.y, boundsFullPos.z)
             }
@@ -1112,7 +1122,38 @@ export class GraphicEngine {
             }
         }
 
-        if (graphicOptions.drawCenters){
+        // if (this.options3D.drawSupports) {
+        //     const supportsGroups = model.supportGroupsAll
+        //     if (supportsGroups.length) {
+        //         supportsGroups.forEach(group => {
+        //             group.items.forEach((item, index) => {
+        //                 const point = item.point
+        //                 const sphere = this.scene3D.getObjectByName(`${model.id}_supportPoint_${group.name}_${index}`)
+        //                 if (sphere) sphere.position.set(point.x, point.y, point.z)
+        //             })
+        //
+        //         })
+        //     }
+        //
+        //     model.wheelAxles.forEach(axle => {
+        //         const axleLineMaterial = new THREE.LineBasicMaterial({
+        //             color: 0x2FC24A
+        //         })
+        //         const points = []
+        //         points.push(new THREE.Vector3(axle.x, axle.y + 300, -axle.width))
+        //         points.push(new THREE.Vector3(axle.x, axle.y + 300, axle.width))
+        //
+        //         const axleLineGeometry = new THREE.BufferGeometry().setFromPoints(points)
+        //
+        //         const axleLine = new THREE.Line(axleLineGeometry, axleLineMaterial)
+        //
+        //         axleLine.name = model.id + '_axleLine_' + axle.id
+        //         this.scene3D.add(axleLine)
+        //
+        //     })
+        // }
+
+        if (graphicOptions.drawCenters) {
             const centersLine = this.scene3D.getObjectByName(model.id + '_centersLine')
             if (centersLine) {
                 // console.log([...model.position.asArray, ...boxPos.asArray]);
@@ -1138,7 +1179,7 @@ export class GraphicEngine {
                 const points = []
                 points.push(new THREE.Vector3(model.position.x, model.position.y, model.position.z))
                 // points.push( new THREE.Vector3( boxPos.x, boxPos.y, boxPos.z ) )
-                points.push( new THREE.Vector3( model.content.position.x, model.content.position.y, model.content.position.z ) )
+                points.push(new THREE.Vector3(model.content.position.x, model.content.position.y, model.content.position.z))
 
                 const centersLineGeometry = new THREE.BufferGeometry().setFromPoints(points)
 
@@ -1157,7 +1198,88 @@ export class GraphicEngine {
             // this.scene3D.add(centersLine)
         }
 
-        model.childs.forEach(one=>this.renderModel3D(one, topModel))
+
+
+        if ((true || graphicOptions.drawWheelAxles) && model.isTop) {
+
+            model.wheelAxles.forEach(axle => {
+                // Draw axle
+                const axleLine = this.scene3D.getObjectByName(model.id + '_axleLine_' + axle.id)
+                if (axleLine) {
+                    const positions = axleLine.geometry.attributes.position.array
+                    // const newPositions = [...model.absolutePosition.asArray, ...boxPos.asArray]
+                    const newPositions = [axle.x, axle.y, -axle.width, axle.x, axle.y, axle.width]
+                    let needUpdate
+                    for (const i in newPositions) {
+                        if (positions[i] !== newPositions[i]) {
+                            needUpdate = true
+                            positions[i] = newPositions[i]
+                        }
+                    }
+                    axleLine.geometry.attributes.position.needsUpdate = needUpdate
+                } else {
+                    const axleLineMaterial = new THREE.LineBasicMaterial({
+                        color: 0x2FC24A
+                    })
+                    const points = []
+                    points.push(new THREE.Vector3(axle.x, axle.y, -axle.width))
+                    points.push(new THREE.Vector3(axle.x, axle.y, axle.width))
+
+                    const axleLineGeometry = new THREE.BufferGeometry().setFromPoints(points)
+
+                    const axleLine = new THREE.Line(axleLineGeometry, axleLineMaterial)
+
+                    axleLine.name = model.id + '_axleLine_' + axle.id
+                    this.scene3D.add(axleLine)
+                }
+
+                // Draw wheels
+                for (let i = 0; i < 2; i++) {
+
+                    const z = i > 0 ? -axle.width : axle.width
+
+                    const wheelMesh = this.scene3D.getObjectByName(`${model.id}_wheelMesh${i}_${axle.id}`)
+                    if (wheelMesh) {
+                        if (axle.needUpdate) {
+                            this.scene3D.remove(wheelMesh)
+                        }
+                        // const positions = wheelCircle.geometry.attributes.position.array
+                        // // const newPositions = [...model.absolutePosition.asArray, ...boxPos.asArray]
+                        // const newPositions = [axle.x, axle.y + 300, -axle.width, axle.x, axle.y + 300, axle.width]
+                        // let needUpdate
+                        // for (const i in newPositions) {
+                        //     if (positions[i] !== newPositions[i]) {
+                        //         needUpdate = true
+                        //         positions[i] = newPositions[i]
+                        //     }
+                        // }
+                        // wheelCircle.geometry.attributes.position.needsUpdate = needUpdate
+                        wheelMesh.position.set(axle.x, axle.y, z)
+                    } else {
+                        const wheelCircleMaterial = new THREE.MeshPhongMaterial({
+                            color: 0x26282a,
+                            opacity:0.9,
+                            transparent:true
+                        })
+                        const wheelGeometry = new THREE.CylinderGeometry( axle.radius, axle.radius, 200,  64 )
+                        const wheelMesh = new THREE.Mesh(wheelGeometry, wheelCircleMaterial)
+                        wheelMesh.position.set(axle.x, axle.y, z)
+                        wheelMesh.rotation.x = Math.PI/2
+
+                        wheelMesh.name = `${model.id}_wheelMesh${i}_${axle.id}`
+                        this.scene3D.add(wheelMesh)
+                    }
+
+                }
+
+                if (axle.needUpdate) {
+                    axle.needUpdate = null
+                }
+            })
+
+        }
+
+        model.childs.forEach(one => this.renderModel3D(one, topModel))
     }
 
     // renderPhysicObject3D_(model) {
@@ -1194,7 +1316,7 @@ export class GraphicEngine {
     //     // }
     //
     //     cube.position.set(boxPos.x, boxPos.y, boxPos.z)
-        // }
+    // }
 
     renderScene3D_(scene) {
 

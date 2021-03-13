@@ -238,19 +238,19 @@ export class Project {
     rotateXSelected(val) {
         if (!this.selectedModel) return
         if (isNaN(+val)) return
-        this.selectedModel.rotateX(+val)
+        this.selectedModel.rotateToX(+val)
     }
 
     rotateYSelected(val) {
         if (!this.selectedModel) return
         if (isNaN(+val)) return
-        this.selectedModel.rotateY(+val)
+        this.selectedModel.rotateToY(+val)
     }
 
     rotateZSelected(val) {
         if (!this.selectedModel) return
         if (isNaN(+val)) return
-        this.selectedModel.rotateZ(+val)
+        this.selectedModel.rotateToZ(+val)
     }
 
     // Content
@@ -352,6 +352,81 @@ export class Project {
         if (!this.selectedModel || !this.meshModel) return null
         const aabb = this.getSizeZByMash()
         this.sizeContentZSelected(aabb.size.z)
+    }
+
+    // wheel axles
+    addWheelAxle() {
+        if (!this.selectedModel) return
+
+        const topModel = this.selectedModel.getTopModel()
+        const axle = {
+            id: uuidv4(),
+            x:0,
+            y:0,
+            width:topModel.content.size.z,
+            radius:300,
+        }
+        // if (!topModel._wheelAxles) topModel._wheelAxles = []
+        topModel._wheelAxles.push(axle)
+        topModel.updatePosition()
+    }
+
+    wheelAxleX(id, val) {
+        if (!this.selectedModel) return
+
+        const topModel = this.selectedModel.getTopModel()
+
+        const axle = topModel._wheelAxles.filter(one=>one.id === id)[0]
+        if (!axle) {
+            console.warn('Axle not found', id)
+            return
+        }
+        axle.x = +val
+        topModel.updatePosition()
+    }
+
+
+    wheelAxleY(id, val) {
+        if (!this.selectedModel) return
+
+        const topModel = this.selectedModel.getTopModel()
+
+        const axle = topModel._wheelAxles.filter(one=>one.id === id)[0]
+        if (!axle) {
+            console.warn('Axle not found', id)
+            return
+        }
+        axle.y = +val
+        topModel.updatePosition()
+    }
+
+    wheelAxleWidth(id, val) {
+        if (!this.selectedModel) return
+
+        const topModel = this.selectedModel.getTopModel()
+
+        const axle = topModel._wheelAxles.filter(one=>one.id === id)[0]
+        if (!axle) {
+            console.warn('Axle not found', id)
+            return
+        }
+        axle.width = +val
+        topModel.updatePosition()
+    }
+
+    wheelAxleRadius(id, val) {
+        if (!this.selectedModel) return
+
+        const topModel = this.selectedModel.getTopModel()
+
+        const axle = topModel._wheelAxles.filter(one=>one.id === id)[0]
+        if (!axle) {
+            console.warn('Axle not found', id)
+            return
+        }
+        axle.radius = +val
+        axle.needUpdate = true
+        topModel.updatePosition()
     }
 
 }
