@@ -2633,6 +2633,7 @@ export class Model {
                     axesHelper: true,
                     // drawBounds: true,
                     drawSupports: true,
+                    drawWheelAxles: true,
                     preserveDrawingBuffer: true
                 }, ...options
             }, container)
