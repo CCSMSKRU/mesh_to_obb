@@ -76,6 +76,9 @@ export class Options extends Component {
             return this.$emit(`options:boxSize_${$target.data('name')}`)
         }else if ($target.data('category') === 'wheelAxleAdd') {
             return this.$emit(`options:wheelAxleAdd_${$target.data('name')}`)
+        }else if ($target.data('category') === 'wheelAxleRemove') {
+            const id = $target.data('id_')
+            return this.$emit(`options:wheelAxleRemove_${$target.data('name')}`, {id})
         }
 
     }

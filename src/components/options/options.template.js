@@ -458,6 +458,7 @@ export function createOptions(data = {}, options = {}) {
                     name: 'remove',
                     icon: 'delete',
                     datas: [
+                        `data-id_=${one.id}`,
                         'data-type="option_button"',
                         `data-category="wheelAxleRemove"`,
                     ],

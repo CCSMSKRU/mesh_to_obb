@@ -360,15 +360,29 @@ export class Project {
         if (!this.selectedModel) return
 
         const topModel = this.selectedModel.getTopModel()
+        const width = Math.round(topModel.content.size.z - 200)
         const axle = {
             id: uuidv4(),
             x:0,
             y:0,
-            width:topModel.content.size.z,
+            width: width > 100? width : 100,
             radius:300,
         }
         // if (!topModel._wheelAxles) topModel._wheelAxles = []
         topModel._wheelAxles.push(axle)
+        topModel.initSupportGroups()
+    }
+
+    removeWheelAxle(id) {
+        if (!this.selectedModel) return
+
+        const topModel = this.selectedModel.getTopModel()
+        const axle = topModel._wheelAxles.filter(one=>one.id === id)[0]
+        if (!axle) {
+            console.warn('Axle not found', id)
+            return
+        }
+        topModel._wheelAxles = topModel._wheelAxles.filter(one=>one.id !== id)
         topModel.initSupportGroups()
     }
 

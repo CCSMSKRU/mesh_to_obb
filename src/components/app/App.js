@@ -339,6 +339,11 @@ export class App {
             }
         })
 
+        this.$on('options:wheelAxleRemove_remove', (e) => {
+            this.project.removeWheelAxle(e.id)
+            this.$emit('project:updateModel')
+        })
+
         this.$on('options:wheelAxle_x', (e) => {
             this.project.wheelAxleX(e.id, e.value)
         })
