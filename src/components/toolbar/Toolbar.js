@@ -98,6 +98,10 @@ export class Toolbar extends Component {
 
         if ($target.data('category') === 'project') {
 
+            if ($target.data('name') === 'copyProject') {
+                return this.$emit('toolbar:copyProject', {})
+            }
+
             if ($target.data('name') === 'uploadProject') {
                 return uploadJSONProject.call(this, e)
             }

@@ -9,7 +9,7 @@ import moment from 'moment'
 import {Emitter} from '@core/Emitter'
 import {Project} from '@/logicComponents/project/Project'
 import {Model} from '@core/physicEngine/geometry/Geometry3D'
-import {download} from '@core/utils'
+import {copyToClipboard, download} from '@core/utils'
 import * as bootbox from 'bootbox'
 import * as toastr from 'toastr'
 import {populateProjects, populateStates, readFromJSONFile} from '@/components/app/app.functions'
@@ -162,6 +162,10 @@ export class App {
             toastr.info('Method not implemented')
             this.$emit('model:boundsChange', {model: this.project.selectedModel})
             this.$emit('model:selectState')
+        })
+
+        this.$on('toolbar:copyProject', (e) => {
+            this.copyProject()
         })
 
         this.$on('toolbar:downloadProject', (e) => {
@@ -467,6 +471,11 @@ export class App {
         }
         localStorage.setItem('projects', JSON.stringify(projects))
         // localStorage.setItem('projects', projects);
+    }
+
+    copyProject() {
+        copyToClipboard(JSON.stringify(this.project.getForStore()))
+        toastr.info('Copied to clipboard')
     }
 
     downloadProject() {

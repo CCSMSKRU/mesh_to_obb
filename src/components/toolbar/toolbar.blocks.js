@@ -59,6 +59,11 @@ export const getBlocks = (project, options) => {
                     hint:'Upload Project from JSON (textarea)'
                 },
                 {
+                    name: 'copyProject',
+                    icon: 'content_copy',
+                    hint:'Copy Project (JSON) to clipboard'
+                },
+                {
                     name: 'downloadProject',
                     icon: 'get_app',
                     hint:'Save Project in JSON file'

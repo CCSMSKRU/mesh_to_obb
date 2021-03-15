@@ -326,7 +326,6 @@ export class AABB {
         const t5 = (min.z - ray.origin.z) / ray.direction.z
         const t6 = (max.z - ray.origin.z) / ray.direction.z
 
-        console.log('AABB raycast')
         const tmin = Math.max(
             Math.max(
                 Math.min(t1, t2),
@@ -1388,15 +1387,16 @@ export class Model {
     static fromOBJ(obj = {}, dropOrig) {
         let content, pos, size, orientation
         if (obj.content && obj.content.instanceName) {
+            const content_obj = obj.content_orig || obj.content || {}
             switch (obj.content.instanceName) {
                 case 'AABB':
-                    pos = new Vector3(obj.content.position._x, obj.content.position._y, obj.content.position._z)
-                    size = new Vector3(obj.content.size._x, obj.content.size._y, obj.content.size._z)
+                    pos = new Vector3(content_obj.position._x, content_obj.position._y, content_obj.position._z)
+                    size = new Vector3(content_obj.size._x, content_obj.size._y, content_obj.size._z)
                     content = new AABB(pos, size)
                     break
                 case 'OBB':
-                    pos = new Vector3(obj.content.position._x, obj.content.position._y, obj.content.position._z)
-                    size = new Vector3(obj.content.size._x, obj.content.size._y, obj.content.size._z)
+                    pos = new Vector3(content_obj.position._x, content_obj.position._y, content_obj.position._z)
+                    size = new Vector3(obj.content.size._x, content_obj.size._y, content_obj.size._z)
                     orientation = new Matrix3(...[...obj.content.orientation[0], ...obj.content.orientation[1], ...obj.content.orientation[2]])
                     content = new OBB(pos, size, orientation)
                     break
@@ -1409,6 +1409,7 @@ export class Model {
         if (dropOrig) {
             obj.position_orig = undefined
             obj.rotation_orig = undefined
+            obj.content_orig = undefined
         }
 
         const position_ = obj.position_orig || obj.position
@@ -1429,6 +1430,14 @@ export class Model {
                 if (state.rotation) {
                     state.rotation = new Vector3(state.rotation._x, state.rotation._y, state.rotation._z)
                     objRes.rotation = new Vector3(...state.rotation.asArray)
+                }
+                if (state.content_size) {
+                    state.content_size = new Vector3(state.content_size._x, state.content_size._y, state.content_size._z)
+                    objRes.content_size = new Vector3(...state.content_size.asArray)
+                }
+                if (state.content_position) {
+                    state.content_position = new Vector3(state.content_position._x, state.content_position._y, state.content_position._z)
+                    objRes.content_position = new Vector3(...state.content_position.asArray)
                 }
                 return objRes
             })
@@ -1583,7 +1592,6 @@ export class Model {
         //     : null
 
 
-
         this.isPlatform = obj.isPlatform // On this plane can be placed transport (another objects)
         this.isRamp = obj.isRamp // On this plane transport can move up
         this.isSteepRamp = obj.isSteepRamp // On this plane transport can move up
@@ -1592,10 +1600,9 @@ export class Model {
 
         this.saveOrigState()
         this.initSupportGroups()
-
     }
 
-    initSupportGroups(){
+    initSupportGroups() {
         if (!this.isSupport || !this.isTop) {
             this.supportGroups = null
             return
@@ -1689,6 +1696,10 @@ export class Model {
     saveOrigState() {
         this.position_orig = new Vector3(...this._position.asArray)
         this.rotation_orig = new Vector3(...this._rotation.asArray)
+        this.content_orig = {
+            position: new Vector3(...this._content.position.asArray),
+            size: new Vector3(...this._content.size.asArray)
+        }
     }
 
 
@@ -1711,6 +1722,7 @@ export class Model {
             rotation: this.rotation,
             position_orig: this.position_orig,
             rotation_orig: this.rotation_orig,
+            content_orig: this.content_orig,
             states: this.states,
             wheelAxles: this._wheelAxles,
             graphicOptions: cloneObj(this.graphicOptions),
@@ -1736,7 +1748,7 @@ export class Model {
         return this.parent ? this.parent.getTopModel() : this
     }
 
-    get isTop(){
+    get isTop() {
         return !this.parent
     }
 
@@ -1855,6 +1867,9 @@ export class Model {
             this._boundsFull.position = this._boundsFull.position.add(vDirection)
         }
         if (!this.getTopModel().isInToStateProcess) {
+            // if (this.selectedState) {
+            //     console.log('this.selectedState.editMode', this.selectedState.editMode, this.selectedState)
+            // }
             if (this.selectedState && this.selectedState.editMode) this.saveToSelectedState()
             else if (!this.selectedState) this.saveOrigState()
         }
@@ -1910,16 +1925,16 @@ export class Model {
         return this._supportGroupsAll
     }
 
-    get wheelAxles(){
+    get wheelAxles() {
         if (this._wheelAxlesWorld) return this._wheelAxlesWorld
 
         const world = this.getWorldMatrix()
-        this._wheelAxlesWorld = this._wheelAxles.map(axle=>{
+        this._wheelAxlesWorld = this._wheelAxles.map(axle => {
             const point = world.multiplyPoint(new Point3D(axle.x, axle.y, 0))
             return {
                 ...axle,
-                x:point.x,
-                y:point.y,
+                x: point.x,
+                y: point.y,
             }
         })
         return this._wheelAxlesWorld
@@ -2219,11 +2234,20 @@ export class Model {
         if (this.position_orig && !this.position.equal(this.position_orig)) changes['position'] = new Vector3(...this.position.asArray)
         if (this.rotation_orig && !this.rotation.equal(this.rotation_orig)) changes['rotation'] = new Vector3(...this.rotation.asArray)
 
+        if (this.content_orig && this.content) {
+            if (this.content_orig.size && !this.content.size.equal(this.content_orig.size))
+                changes['content_size'] = new Vector3(...this.content.size.asArray)
+            if (this.content_orig.position && !this.content.size.equal(this.content_orig.position))
+                changes['content_position'] = new Vector3(...this.content.position.asArray)
+        }
+
+
         // if (state.position && !this.position.equal(state.position)) changes['position'] = new Vector3(...this.position.asArray)
         // if (state.rotation && !this.rotation.equal(state.rotation)) changes['rotation'] = new Vector3(...this.rotation.asArray)
         // Object.keys(changes).forEach(key => state[key] = changes[key])
 
         let state = this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
+
         if (Object.keys(changes).length) {
             // const state =
             //     this.states.filter(one => one.sysname === this.selectedState.sysname)[0]
@@ -2236,6 +2260,8 @@ export class Model {
         } else if (state) {
             state['position'] = undefined
             state['rotation'] = undefined
+            state['content_size'] = undefined
+            state['content_position'] = undefined
         }
 
         this._childs.forEach(one => one.saveToSelectedState(true))
@@ -2263,6 +2289,14 @@ export class Model {
         let state_obj = this.states.filter(one => one.sysname === sysname)[0] || {}
         this.position = state_obj.position || this.position_orig || this._position
         this.rotation = state_obj.rotation || this.rotation_orig || this._rotation
+
+        if (this.content) {
+            const size = state_obj.content_size || this.content_orig.size
+            const position = state_obj.content_position || this.content_orig.position
+            if (!this.content.size.equal(size)) this.content.size = size
+            if (!this.content.position.equal(position)) this.content.position = position
+            this.content.sizeNeedUpdate = true
+        }
 
         this.updatePosition()
 
@@ -2416,13 +2450,13 @@ export class Model {
                     : null
 
                 // Соотавляем alias из касающихся точек
-                if (itemsOnPlane && itemsOnPlane.length){
+                if (itemsOnPlane && itemsOnPlane.length) {
                     checkOnAliasArr.push(itemsOnPlane.map(one => one.object.id).join('='))
                 }
 
                 // Точки касающиеся поверхности isPlatform
                 const itemsOnPlatformPlane = itemsOnPlane
-                    ? itemsOnPlane.filter(one =>one.object.isPlatform)
+                    ? itemsOnPlane.filter(one => one.object.isPlatform)
                     : null
 
                 if (itemsOnPlatformPlane && itemsOnPlatformPlane.length) {

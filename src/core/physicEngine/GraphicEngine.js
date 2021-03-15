@@ -822,11 +822,20 @@ export class GraphicEngine {
         const boxSize = box.size //.multiply(this.scale)
         const boxPos = box.position //.multiply(this.inverseMultiplyVec3D)
         const geometry = new THREE.BoxGeometry(boxSize.x * 2, boxSize.y * 2, boxSize.z * 2)
+
+        let opacity_val = typeof graphicOptions.opacity !== 'undefined'
+            ? graphicOptions.opacity
+            : 1
+        // if (opacity_val && model.states.length){
+        //     opacity_val -= 0.3
+        //     if (opacity_val < 0.1) opacity_val = 0.1
+        // }
+
         const material = new THREE.MeshPhongMaterial({
             color: graphicOptions.materialColor || '#0F0',
-            opacity: typeof graphicOptions.opacity !== 'undefined' ? graphicOptions.opacity : 1,
+            opacity: opacity_val,
             // transparent:graphicOptions.transparent
-            transparent: !(typeof graphicOptions.opacity !== 'undefined' && graphicOptions.opacity === 1)
+            transparent: opacity_val && opacity_val < 1
         })
         const cube = new THREE.Mesh(geometry, material)
         cube.name = model.id
@@ -949,9 +958,9 @@ export class GraphicEngine {
 
 
         if (model.content.sizeNeedUpdate) {
-            const scaleX = (model.content.size.x * 2) / cube.geometry.parameters.width
-            const scaleY = (model.content.size.y * 2) / cube.geometry.parameters.height
-            const scaleZ = (model.content.size.z * 2) / cube.geometry.parameters.depth
+            const scaleX = (model.content.size.x * 2) / (cube.geometry.parameters.width || 1)
+            const scaleY = (model.content.size.y * 2) / (cube.geometry.parameters.height || 1)
+            const scaleZ = (model.content.size.z * 2) / (cube.geometry.parameters.depth || 1)
             cube.scale.set(scaleX, scaleY, scaleZ)
             model.content.sizeNeedUpdate = false
         }
