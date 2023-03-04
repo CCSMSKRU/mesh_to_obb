@@ -92,6 +92,8 @@ export class Project {
                     type: 'THREEJS_OBJ',
                     content: object
                 })
+            }).catch(e=>{
+                console.log('ERROR: loadThreeJSModel', e)
             })
 
 

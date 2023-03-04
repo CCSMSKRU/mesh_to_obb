@@ -31,11 +31,19 @@ export class App {
 
         this.$on('toolbar:loadMesh', (e) => {
             const loadMesh = async () => {
-                await this.project.loadMeshUrl(e.file)
-                this.$emit('project:loadMeshUrl')
+                try {
+                    await this.project.loadMeshUrl(e.file)
+                    this.$emit('project:loadMeshUrl')
+                } catch (e) {
+                    console.log('ERROR while loadMeshUrl', e)
+                }
 
-                await this.project.loadMeshModel()
-                this.$emit('project:loadMeshModel')
+                try {
+                    await this.project.loadMeshModel()
+                    this.$emit('project:loadMeshModel')
+                } catch (e) {
+                    console.log('ERROR while loadMeshModel', e)
+                }
             }
 
             loadMesh().catch(e => {
