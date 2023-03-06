@@ -1477,6 +1477,8 @@ export class Model {
         if (obj.content) this.content = obj.content
         if (obj.rotation) this.rotation = obj.rotation
 
+        // debugger
+
 
         if (!this._rotation) this._rotation = new Vector3()
 
@@ -1699,8 +1701,10 @@ export class Model {
         this.rotation_orig = new Vector3(...this._rotation.asArray)
         // debugger
         this.content_orig = {
-            position: this._content.position ? new Vector3(...this._content.position.asArray) : new Vector3(),
-            size: this._content.size ? new Vector3(...this._content.size.asArray) : new Vector3(10, 10, 10)
+            position: this._content.position instanceof Vector3
+                ? new Vector3(...this._content.position.asArray) : new Vector3(),
+            size: this._content.size instanceof Vector3
+                ? new Vector3(...this._content.size.asArray) : new Vector3(10, 10, 10)
         }
     }
 
@@ -1894,16 +1898,16 @@ export class Model {
     set content(val) {
         this._content = val
         // if (!this._content) return
-        if (!this._content?.position || !(this._content?.position instanceof Vector3)){
-            this._content.position = this._content.position
-                ? new Vector3(this._content.position?.x, this._content.position?.y, this._content.position?.z)
-                : new Vector3()
-        }
-        if (!this._content?.size || !(this._content?.size instanceof Vector3)){
-            this._content.size = this._content.size
-                ? new Vector3(this._content.size?.x, this._content.size?.y, this._content.size?.z)
-                : new Vector3(10, 10, 10)
-        }
+        // if (!this._content?.position || !(this._content?.position instanceof Vector3)){
+        //     this._content.position = this._content.position
+        //         ? new Vector3(this._content.position?.x, this._content.position?.y, this._content.position?.z)
+        //         : new Vector3()
+        // }
+        // if (!this._content?.size || !(this._content?.size instanceof Vector3)){
+        //     this._content.size = this._content.size
+        //         ? new Vector3(this._content.size?.x, this._content.size?.y, this._content.size?.z)
+        //         : new Vector3(10, 10, 10)
+        // }
 
         this.bounds = this.calcBounds()
         // return
